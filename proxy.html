@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARBON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css"></link>
+    <script src=""></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative">
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-8 py-4 bg-[#0f0f23cc] border-b border-white/10 backdrop-blur-md animate-[slideDown_0.5s_ease-out]">
+        <div class="navbar-brand text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent tracking-tighter select-none">CARBON</div>
+        <div class="hamburger flex flex-col gap-1.5 cursor-pointer p-2 transition-transform duration-300" id="hamburger" onclick="toggleMenu()">
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="fixed top-0 right-[-100%] w-72 h-full bg-[#0f0f23f2] backdrop-blur-md border-l border-white/10 pt-24 px-8 z-[999] transition-all duration-300" id="mobileMenu">
+        <a href="#home" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Home</a>
+        <a href="#games" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Games</a>
+        <a href="#proxy" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Proxy</a>
+    </div>
+    <div class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]" id="overlay" onclick="closeMenu()"></div>
+
+    <!-- Animated Blobs -->
+    <div class="blob1 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:300px;height:300px;top:10%;left:10%;background:linear-gradient(45deg,#00d4ff,#5865f2);animation:float 20s infinite ease-in-out;"></div>
+    <div class="blob2 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:250px;height:250px;top:60%;right:10%;background:linear-gradient(45deg,#5865f2,#8b5cf6);animation:float 20s infinite ease-in-out -7s;"></div>
+    <div class="blob3 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:200px;height:200px;bottom:20%;left:20%;background:linear-gradient(45deg,#00d4ff,#8b5cf6);animation:float 20s infinite ease-in-out -14s;"></div>
+
+    <!-- Main Content -->
+    <main class="flex flex-col items-center justify-center min-h-screen pt-28 pb-8 px-4 relative z-10">
+      <form id="form" class="flex-center w-full">
+        <input
+          autofocus="true"
+          spellcheck="false"
+          autocomplete="off"
+          id="address"
+          type="text"
+          placeholder="Search the web freely"
+          class="bg-transparent w-full focus:outline-none"
+        />
+      </form>
+        <script defer type="module">
+  import {
+    setTransport,
+    setWisp,
+    setProxy,
+    makeURL,
+    getProxied,
+  } from "./lethal.mjs";
+
+  // --- Form ---
+  const form = document.getElementById("form");
+  const addressInput = document.getElementById("address");
+  let search =
+    localStorage.getItem("search-engine") ||
+    "https://search.brave.com/search?q=%s";
+  let frame = document.getElementById("frame");
+
+  // --- Proxy ---
+  let backend = localStorage.getItem("proxy-backend") || "uv";
+  let wisp = (localStorage.getItem("wisp-server") || "wss://anura.pro/");
+  let transport = localStorage.getItem("proxy-transport");
+
+  setWisp(wisp);
+  setProxy(backend);
+
+  if (transport) setTransport(transport);
+  else if (navigator.userAgent.indexOf("Firefox") > 0) setTransport("libcurl");
+  else setTransport("epoxy");
+
+  // --- Form ---
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const urlToLoad = makeURL(addressInput.value, search);
+    } else frame.src = await getProxied(urlToLoad);
+  });
+
+  // --- Event Listeners ---
+  // basically we monkey patch localstorage.setitem to emit an event
+  window.addEventListener("search-engine-changed", () => {
+    search = localStorage.getItem("search-engine");
+  });
+
+  window.addEventListener("proxy-backend-changed", () => {
+    backend = localStorage.getItem("proxy-backend");
+    setProxy(localStorage.getItem("proxy-backend"));
+  });
+
+  window.addEventListener("wisp-server-changed", () => {
+    wisp = localStorage.getItem("wisp-server");
+    setWisp(localStorage.getItem("wisp-server"));
+  });
+
+  window.addEventListener("proxy-transport-changed", () => {
+    transport = localStorage.getItem("proxy-transport");
+    setTransport(localStorage.getItem("proxy-transport"));
+  });
+      </script>
+    </main>
+
+    <iframe title="Proxy Frame" id="frame" class="w-full h-full border-0 fixed"></iframe>
+</body>
+</html>
