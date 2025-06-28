@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,73 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CARBON</title>
 
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              display: ["Switzer", "Helvetica", "sans-serif"],
-            },
-            colors: {
-              base: '#191724',
-              surface: '#1f1d2e',
-              overlay: '#26233a',
-              muted: '#6e6a86',
-              subtle: '#908caa',
-              text: '#e0def4',
-              love: '#eb6f92',
-              gold: '#f6c177',
-              rose: '#ebbcba',
-              pine: '#31748f',
-              foam: '#9ccfd8',
-              iris: '#c4a7e7',
-              'highlight-low': '#21202e',
-              'highlight-med': '#403d52',
-              'highlight-high': '#524f67',
-            }
-          }
-        }
-      }
-    </script>
     <script defer async src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script defer src="/js/hamburger.js"></script>
     <link rel="stylesheet" href="styles.css"></link>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gradient-to-br from-base via-surface to-overlay min-h-screen text-text overflow-x-hidden relative">
+<body class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative">
     <!-- Navbar -->
-    <nav class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-8 py-4 bg-base/80 border-b border-highlight-med/10 backdrop-blur-md animate-[slideDown_0.5s_ease-out]">
-        <div class="navbar-brand text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-foam to-iris bg-clip-text text-transparent tracking-tighter select-none">CARBON</div>
+    <nav class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-8 py-4 bg-[#0f0f23cc] border-b border-white/10 backdrop-blur-md animate-[slideDown_0.5s_ease-out]">
+        <div class="navbar-brand text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent tracking-tighter select-none">CARBON</div>
         <div class="hamburger flex flex-col gap-1.5 cursor-pointer p-2 transition-transform duration-300" id="hamburger">
-            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-foam to-iris transition-all duration-300"></span>
-            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-foam to-iris transition-all duration-300"></span>
-            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-foam to-iris transition-all duration-300"></span>
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
         </div>
     </nav>
 
     <!-- Mobile Menu -->
-    <aside class="fixed top-0 right-[-100%] w-72 h-full bg-base/95 backdrop-blur-md border-l border-highlight-med/10 pt-24 px-8 z-[999] transition-all duration-300" id="mobileMenu">
-        <a href="/" class="mobile-menu-item block py-4 mb-2 text-text font-semibold text-lg border-b border-highlight-med/10 relative overflow-hidden transition-all duration-300 hover:text-foam hover:pl-4">Home</a>
-        <a href="/games.html" class="mobile-menu-item block py-4 mb-2 text-text font-semibold text-lg border-b border-highlight-med/10 relative overflow-hidden transition-all duration-300 hover:text-foam hover:pl-4">Games</a>
-        <a href="/proxy" class="mobile-menu-item block py-4 mb-2 text-text font-semibold text-lg border-b border-highlight-med/10 relative overflow-hidden transition-all duration-300 hover:text-foam hover:pl-4">Proxy</a>
+    <aside class="fixed top-0 right-[-100%] w-72 h-full bg-[#0f0f23f2] backdrop-blur-md border-l border-white/10 pt-24 px-8 z-[999] transition-all duration-300" id="mobileMenu">
+        <a href="/" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Home</a>
+        <a href="/games.html" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Games</a>
+        <a href="/proxy" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Proxy</a>
     </aside>
     <div class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]" id="overlay" onclick="toggleMenu()"></div>
 
     <!-- Animated Blobs -->
-    <div class="blob1 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:300px;height:300px;top:10%;left:10%;background:linear-gradient(45deg,theme('colors.foam'),theme('colors.iris'));animation:float 20s infinite ease-in-out;"></div>
-    <div class="blob2 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:250px;height:250px;top:60%;right:10%;background:linear-gradient(45deg,theme('colors.iris'),theme('colors.love'));animation:float 20s infinite ease-in-out -7s;"></div>
-    <div class="blob3 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:200px;height:200px;bottom:20%;left:20%;background:linear-gradient(45deg,theme('colors.foam'),theme('colors.love'));animation:float 20s infinite ease-in-out -14s;"></div>
+    <div class="blob1 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:300px;height:300px;top:10%;left:10%;background:linear-gradient(45deg,#00d4ff,#5865f2);animation:float 20s infinite ease-in-out;"></div>
+    <div class="blob2 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:250px;height:250px;top:60%;right:10%;background:linear-gradient(45deg,#5865f2,#8b5cf6);animation:float 20s infinite ease-in-out -7s;"></div>
+    <div class="blob3 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:200px;height:200px;bottom:20%;left:20%;background:linear-gradient(45deg,#00d4ff,#8b5cf6);animation:float 20s infinite ease-in-out -14s;"></div>
 
     <main class="flex flex-col items-center justify-center min-h-screen pt-28 pb-8 px-4 relative z-10">
         <div class="flex flex-col items-center justify-center w-full">
             <div class="logo-container mb-8 animate-[fadeInUp_1s_ease-out] flex justify-center">
                 <div class="logo relative w-[120px] h-[120px] cursor-pointer transition-transform duration-300 hover:scale-110 hover:rotate-3 flex items-center justify-center" onclick="createParticles(event)">
-                    <div class="logo-ring logo-ring-1 absolute border-8 rounded-full" style="width:120px; height:120px; border-color:transparent; border-top-color:theme('colors.foam'); border-right-color:theme('colors.foam'); transform:rotate(-45deg); animation:spin 8s linear infinite;"></div>
-                    <div class="logo-ring logo-ring-2 absolute top-[15px] left-[15px] border-8 rounded-full" style="width:90px; height:90px; border-color:transparent; border-bottom-color:theme('colors.iris'); border-left-color:theme('colors.iris'); transform:rotate(45deg); animation:spinReverse 12s linear infinite;"></div>
+                    <div class="logo-ring logo-ring-1 absolute border-8 rounded-full" style="width:120px; height:120px; border-color:transparent; border-top-color:#00d4ff; border-right-color:#00d4ff; transform:rotate(-45deg); animation:spin 8s linear infinite;"></div>
+                    <div class="logo-ring logo-ring-2 absolute top-[15px] left-[15px] border-8 rounded-full" style="width:90px; height:90px; border-color:transparent; border-bottom-color:#5865f2; border-left-color:#5865f2; transform:rotate(45deg); animation:spinReverse 12s linear infinite;"></div>
                 </div>
             </div>
-            <h1 class="title font-black text-center bg-gradient-to-r from-foam via-iris to-love bg-clip-text text-transparent mb-12 tracking-tighter animate-[fadeInUp_1s_ease-out_0.2s_both] text-5xl sm:text-6xl md:text-7xl flex justify-center">CARBON</h1>
-            <a href="/proxy.html" class="relative inline-flex items-center justify-center px-10 py-4 text-lg font-bold text-text transition-all duration-200 bg-surface hover:bg-overlay rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-foam animate-[fadeInUp_1s_ease-out_0.6s_both]">Get Started</a>
+            <h1 class="title font-black text-center bg-gradient-to-r from-cyan-400 via-indigo-500 to-purple-400 bg-clip-text text-transparent mb-12 tracking-tighter animate-[fadeInUp_1s_ease-out_0.2s_both] text-5xl sm:text-6xl md:text-7xl flex justify-center">CARBON</h1>
+            <div class="blob-button animate-[fadeInUp_1s_ease-out_0.6s_both]">Blob placeholder</div>
         </div>
     </main>
 
