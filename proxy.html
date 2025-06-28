@@ -7,6 +7,65 @@
     <script defer async src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="styles.css"></link>
     <script defer async src="/js/hamburger.js"></script>
+      <script defer type="module">
+  import {
+    setTransport,
+    setWisp,
+    setProxy,
+    makeURL,
+    getProxied,
+  } from "./lethal.mjs";
+
+  // --- Form ---
+  const form = document.getElementById("form");
+  const addressInput = document.getElementById("address");
+  let search =
+    localStorage.getItem("search-engine") ||
+    "https://search.brave.com/search?q=%s";
+  let frame = document.getElementById("frame");
+
+  // --- Proxy ---
+  let backend = localStorage.getItem("proxy-backend") || "uv";
+  let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
+  let transport = localStorage.getItem("proxy-transport");
+
+  setWisp(wisp);
+  setProxy(backend);
+
+  if (transport) setTransport(transport);
+  else if (navigator.userAgent.indexOf("Firefox") > 0) setTransport("libcurl");
+  else setTransport("epoxy");
+
+  // --- Form ---
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    document.getElementById("proxy-container").classList.remove("hidden");
+    const urlToLoad = makeURL(addressInput.value, search);
+    frame.src = await getProxied(urlToLoad);
+  });
+
+  // --- Event Listeners ---
+  // basically we monkey patch localstorage.setitem to emit an event
+  window.addEventListener("search-engine-changed", () => {
+    search = localStorage.getItem("search-engine");
+  });
+
+  window.addEventListener("proxy-backend-changed", () => {
+    backend = localStorage.getItem("proxy-backend");
+    setProxy(localStorage.getItem("proxy-backend"));
+  });
+
+  window.addEventListener("wisp-server-changed", () => {
+    wisp = localStorage.getItem("wisp-server");
+    setWisp(localStorage.getItem("wisp-server"));
+  });
+
+  window.addEventListener("proxy-transport-changed", () => {
+    transport = localStorage.getItem("proxy-transport");
+    setTransport(localStorage.getItem("proxy-transport"));
+  });
+      </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative">
