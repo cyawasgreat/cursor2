@@ -1,116 +1,743 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CARBON</title>
-    <script defer async src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="styles.css"></link>
-    <script defer async src="/js/hamburger.js"></script>
-      <script defer type="module">
-  import {
-    setTransport,
-    setWisp,
-    setProxy,
-    makeURL,
-    getProxied,
-  } from "./lethal.mjs";
-
-  // --- Form ---
-  const form = document.getElementById("form");
-  const addressInput = document.getElementById("address");
-  let search =
-    localStorage.getItem("search-engine") ||
-    "https://search.brave.com/search?q=%s";
-  let frame = document.getElementById("frame");
-
-  // --- Proxy ---
-  let backend = localStorage.getItem("proxy-backend") || "uv";
-  let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
-  let transport = localStorage.getItem("proxy-transport");
-
-  setWisp(wisp);
-  setProxy(backend);
-
-  if (transport) setTransport(transport);
-  else if (navigator.userAgent.indexOf("Firefox") > 0) setTransport("libcurl");
-  else setTransport("epoxy");
-
-  // --- Form ---
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    document.getElementById("proxy-container").classList.remove("hidden");
-    const urlToLoad = makeURL(addressInput.value, search);
-    frame.src = await getProxied(urlToLoad);
-  });
-
-  // --- Event Listeners ---
-  // basically we monkey patch localstorage.setitem to emit an event
-  window.addEventListener("search-engine-changed", () => {
-    search = localStorage.getItem("search-engine");
-  });
-
-  window.addEventListener("proxy-backend-changed", () => {
-    backend = localStorage.getItem("proxy-backend");
-    setProxy(localStorage.getItem("proxy-backend"));
-  });
-
-  window.addEventListener("wisp-server-changed", () => {
-    wisp = localStorage.getItem("wisp-server");
-    setWisp(localStorage.getItem("wisp-server"));
-  });
-
-  window.addEventListener("proxy-transport-changed", () => {
-    transport = localStorage.getItem("proxy-transport");
-    setTransport(localStorage.getItem("proxy-transport"));
-  });
-      </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CARBON</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'inter': ['Inter', 'sans-serif'],
+          },
+          colors: {
+            'dark': {
+              900: '#0f0f23',
+              800: '#1a1a2e',
+              700: '#23234d',
+              600: '#2c2c5c',
+              500: '#16213e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .suggestion-box {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      z-index: 1200;
+      background: #1a1a2e;
+      border-radius: 0 0 0.75rem 0.75rem;
+      border: 1px solid #23234d;
+      border-top: none;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 6px 20px 2px #000A;
+      color: #fff;
+      font-size: 1rem;
+      width: 100%;
+    }
+    .suggestion-item {
+      padding: 0.73rem 1.1rem;
+      cursor: pointer;
+      transition: background 0.16s;
+      border-bottom: 1px solid #23234d;
+    }
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+    .suggestion-item:hover,
+    .suggestion-item.active {
+      background: #23234d;
+      color: #0ff;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .dropdown-list {
+      min-width: 160px;
+    }
+    .dropdown-list button {
+      font-size: 1rem;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative">
-    <!-- Navbar -->
-    <nav class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-8 py-4 bg-[#0f0f23cc] border-b border-white/10 backdrop-blur-md animate-[slideDown_0.5s_ease-out]">
-        <div class="navbar-brand text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent tracking-tighter select-none">CARBON</div>
-        <div class="hamburger flex flex-col gap-1.5 cursor-pointer p-2 transition-transform duration-300" id="hamburger" onclick="toggleMenu()">
-            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
-            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
-            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+<body class="font-inter bg-gradient-to-br from-dark-900 via-dark-800 to-dark-500 min-h-screen text-white overflow-x-hidden">
+
+<main class="flex flex-col items-center justify-center min-h-screen p-4">
+  <div class="w-full max-w-6xl mx-auto">
+    <!-- Main Container -->
+    <div class="bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-dark-700/50 overflow-hidden">
+      
+      <!-- Tab Bar -->
+      <div class="bg-dark-700/80 border-b border-dark-600/50 flex items-end">
+        <div id="tabs-bar" class="flex items-end flex-1 overflow-x-auto scrollbar-hide min-h-[40px] px-2 pt-2"></div>
+        <button id="new-tab-btn" 
+                class="flex-shrink-0 w-8 h-8 rounded-full bg-transparent hover:bg-dark-600 text-gray-400 hover:text-white font-bold text-xl transition-all duration-200 flex items-center justify-center mx-2 mb-1" 
+                title="New Tab (Ctrl+T)">
+          +
+        </button>
+      </div>
+      
+      <!-- Header with Controls -->
+      <div class="bg-dark-700/50 p-4 border-b border-dark-600/30">
+        <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+          <!-- Proxy Toggle Icon Button Left -->
+          <div class="flex items-center gap-6">
+            <div class="relative">
+              <button id="proxy-toggle-btn"
+                class="w-12 h-12 rounded-xl bg-dark-600 hover:bg-dark-500 text-cyan-400 border-2 border-cyan-400 flex items-center justify-center text-2xl group transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                title="Switch Proxy">
+                <i id="proxy-toggle-icon" class='bx bx-cloud text-2xl'></i>
+              </button>
+              <div id="proxy-dropdown"
+                class="hidden dropdown-list absolute left-0 top-14 bg-dark-700 border-2 border-cyan-400 rounded-xl shadow-xl z-50 py-1">
+                <button data-proxy="uv" class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"><i class='bx bx-cloud'></i>UV</button>
+                <button data-proxy="scram" class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"><i class='bx bx-network-chart'></i>Scramjet</button>
+              </div>
+            </div>
+            <!-- Navigation Buttons -->
+            <div class="flex items-center gap-2">
+              <button id="back-btn" class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group" title="Back">
+                <i class='bx bx-arrow-back text-2xl text-gray-300 group-hover:text-white transition-colors'></i>
+              </button>
+              <button id="forward-btn" class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group" title="Forward">
+                <i class='bx bx-arrow-forward text-2xl text-gray-300 group-hover:text-white transition-colors'></i>
+              </button>
+              <button id="refresh-btn" class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group" title="Refresh">
+                <i class='bx bx-refresh text-2xl text-gray-300 group-hover:text-white transition-colors'></i>
+              </button>
+              <button id="home-btn" class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group" title="Home">
+                <i class='bx bx-home-alt text-2xl text-gray-300 group-hover:text-white transition-colors'></i>
+              </button>
+              <button id="history-btn" class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group" title="Show History">
+                <i class='bx bx-history text-2xl text-gray-300 group-hover:text-white transition-colors'></i>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Search Engine Icon Button Right -->
+          <div class="flex items-center gap-6">
+            <!-- 3-Dots Menu -->
+            <div class="relative">
+              <button id="menu-btn"
+                class="w-12 h-12 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
+                title="Menu">
+                <i class='bx bx-dots-horizontal-rounded text-2xl text-gray-300 group-hover:text-white transition-colors'></i>
+              </button>
+              <div id="dropdown-menu"
+                class="hidden absolute right-0 top-14 bg-dark-700 border border-dark-600 rounded-xl shadow-xl z-50 min-w-[180px] py-2">
+                <button id="clear-history-btn"
+                  class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm">
+                  Clear History
+                </button>
+                <button id="close-all-tabs-btn"
+                  class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm">
+                  Close All Tabs
+                </button>
+                <button id="restore-tabs-btn"
+                  class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm">
+                  Restore Tabs
+                </button>
+              </div>
+            </div>
+            <div class="relative">
+              <button id="search-engine-btn"
+                class="w-12 h-12 rounded-xl bg-dark-600 hover:bg-dark-500 text-cyan-400 border-2 border-cyan-400 flex items-center justify-center text-2xl group transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                title="Switch Search">
+                <i id="search-engine-icon" class='bx bxl-brave text-2xl'></i>
+              </button>
+              <div id="search-engine-dropdown"
+                class="hidden dropdown-list absolute right-0 top-14 bg-dark-700 border-2 border-cyan-400 rounded-xl shadow-xl z-50 py-1">
+                <button data-engine="https://search.brave.com/search?q=%s" class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"><i class='bx bxl-brave'></i>Brave</button>
+                <button data-engine="https://duckduckgo.com/?q=%s" class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"><i class='bx bxl-duckduckgo'></i>DuckDuckGo</button>
+                <button data-engine="https://www.google.com/search?q=%s" class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"><i class='bx bxl-google'></i>Google</button>
+                <button data-engine="https://www.bing.com/search?q=%s" class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"><i class='bx bxl-microsoft'></i>Bing</button>
+                <button data-engine="https://search.yahoo.com/search?p=%s" class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"><i class='bx bxl-yahoo'></i>Yahoo</button>
+                <button data-engine="https://www.ecosia.org/search?q=%s" class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"><i class='bx bxl-leaf'></i>Ecosia</button>
+              </div>
+            </div>
+          </div>
         </div>
-    </nav>
-
-    <!-- Mobile Menu -->
-    <div class="fixed top-0 right-[-100%] w-72 h-full bg-[#0f0f23f2] backdrop-blur-md border-l border-white/10 pt-24 px-8 z-[999] transition-all duration-300" id="mobileMenu">
-        <a href="/" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Home</a>
-        <a href="#games" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Games</a>
-        <a href="/proxy" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Proxy</a>
+      </div>
+      
+      <!-- Address Bar -->
+      <div class="p-4 bg-dark-700/30 relative">
+        <form id="address-bar-form" class="w-full">
+          <input id="address-bar-input"
+                 type="text"
+                 spellcheck="false"
+                 autocomplete="off"
+                 placeholder="Search the web freely"
+                 class="w-full bg-dark-600 border-2 border-cyan-400 text-white rounded-xl px-6 py-4 text-lg placeholder-gray-400 focus:outline-none focus:border-cyan-300 focus:bg-dark-500 transition-all duration-300"/>
+        </form>
+        <div id="suggestion-box" class="suggestion-box hidden"></div>
+      </div>
+      
+      <!-- Content Area -->
+      <div class="bg-black border-t border-dark-600/30">
+        <iframe id="proxy-iframe"
+                title="Proxy Frame"
+                class="w-full h-[70vh] border-0"></iframe>
+      </div>
     </div>
-    <div class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]" id="overlay"></div>
-
-    <!-- Main Content -->
-    <main class="flex flex-col items-center justify-center min-h-screen pt-28 pb-8 px-4 relative z-10">
-    <div id="proxy-container" class="fixed inset-0 z-[2000] hidden">
-        <div id="proxy-controls" class="z-[150] h-12 bg-black/20 backdrop-blur-md flex items-center justify-end px-4">
-            <button id="close-proxy" class="text-white text-2xl font-bold hover:text-cyan-400 transition-colors">&times;</button>
-        </div>
-        <iframe title="Proxy Frame" id="frame" class="z-[100] w-full h-[calc(100%-3rem)] border-0"></iframe>
+  </div>
+  
+  <!-- History Modal -->
+  <div id="history-modal-bg"
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+    <div id="history-modal"
+         class="bg-dark-700 border border-dark-600 rounded-2xl shadow-2xl max-w-md w-[90vw] p-6 relative transform scale-95 opacity-0 transition-all duration-300">
+      <button id="close-history-modal"
+              class="absolute top-4 right-4 text-gray-400 hover:text-red-400 transition-colors">
+        <i class='bx bx-x text-2xl'></i>
+      </button>
+      <h2 class="text-xl font-bold mb-6 text-white flex items-center">
+        <i class='bx bx-history mr-3 text-cyan-400'></i>
+        Tab History
+      </h2>
+      <div id="modal-history-list"
+           class="max-h-80 overflow-y-auto space-y-2 text-gray-300 scrollbar-thin scrollbar-thumb-cyan-500 scrollbar-track-dark-600">
+      </div>
     </div>
-      <form id="form" class="w-full md:w-2/3 lg:w-1/2">
-        <input
-          autofocus="true"
-          spellcheck="false"
-          autocomplete="off"
-          id="address"
-          type="text"
-          placeholder="Search the web freely"
-          class="bg-transparent w-full focus:outline-none border-b-2 border-cyan-400 text-center py-2 text-xl transition-all duration-300 placeholder-white/50 focus:border-indigo-500"
-        />
-      </form>
-        <link rel="modulepreload" href="https://cdn.jsdelivr.net/gh/Coding4Hours/cdn/uv/uv.bundle.js">
-    <link rel="modulepreload" href="/scram/scramjet.worker.js">
-    <script defer type="module" src="lethal.mjs"></script>
-    </main>
+  </div>
+</main>
+<script type="module">
+
+import {
+  makeURL,
+  getProxied,
+  setProxy,
+  setTransport,
+  setWisp,
+} from "/lethal.mjs";
+// --- END LETHAL IMPORTS ---
+
+const engines = {
+  "https://search.brave.com/search?q=%s": ["Brave", "bxl-brave"],
+  "https://duckduckgo.com/?q=%s": ["DuckDuckGo", "bxl-duckduckgo"],
+  "https://www.google.com/search?q=%s": ["Google", "bxl-google"],
+  "https://www.bing.com/search?q=%s": ["Bing", "bxl-microsoft"],
+  "https://search.yahoo.com/search?p=%s": ["Yahoo", "bxl-yahoo"],
+  "https://www.ecosia.org/search?q=%s": ["Ecosia", "bxl-leaf"]
+};
+
+// --- Search Engine Dropdown as Boxicon Button ---
+const searchEngineBtn = document.getElementById("search-engine-btn");
+const searchEngineIcon = document.getElementById("search-engine-icon");
+const searchEngineDropdown = document.getElementById("search-engine-dropdown");
+function getCurrentSearchEngine() {
+  return localStorage.getItem("search-engine") || "https://search.brave.com/search?q=%s";
+}
+function setCurrentSearchEngine(url) {
+  localStorage.setItem("search-engine", url);
+  updateSearchEngineDisplay();
+}
+function updateSearchEngineDisplay() {
+  const current = getCurrentSearchEngine();
+  const [name, icon] = engines[current] || ["Brave", "bxl-brave"];
+  searchEngineIcon.className = `bx ${icon} text-2xl`;
+  searchEngineBtn.title = name;
+}
+searchEngineBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  searchEngineDropdown.classList.toggle("hidden");
+});
+document.querySelectorAll("#search-engine-dropdown [data-engine]").forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    const engine = e.currentTarget.dataset.engine;
+    setCurrentSearchEngine(engine);
+    searchEngineDropdown.classList.add("hidden");
+    const tab = getActiveTab();
+    if (tab && tab.history[tab.pointer]) {
+      let v = tab.history[tab.pointer];
+      if (!/^(https?:)?\/\//.test(v) && v.length > 0) renderTabContent(tab);
+    }
+  });
+});
+updateSearchEngineDisplay();
 
 
+const proxyToggleBtn = document.getElementById("proxy-toggle-btn");
+const proxyToggleIcon = document.getElementById("proxy-toggle-icon");
+const proxyDropdown = document.getElementById("proxy-dropdown");
+function getCurrentProxy() {
+  return localStorage.getItem("proxy-backend") || "uv";
+}
+function setCurrentProxy(proxy) {
+  localStorage.setItem("proxy-backend", proxy);
+  updateProxyToggleUI(proxy);
+}
+function updateProxyToggleUI(proxy) {
+  if (proxy === "scram") {
+    proxyToggleBtn.classList.remove('border-cyan-400');
+    proxyToggleBtn.classList.add('border-yellow-400', 'bg-yellow-500/20');
+    proxyToggleIcon.className = "bx bx-network-chart text-2xl";
+    proxyToggleBtn.title = "Scramjet";
+  } else {
+    proxyToggleBtn.classList.remove('border-yellow-400', 'bg-yellow-500/20');
+    proxyToggleBtn.classList.add('border-cyan-400');
+    proxyToggleIcon.className = "bx bx-cloud text-2xl";
+    proxyToggleBtn.title = "UV";
+  }
+}
+proxyToggleBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  proxyDropdown.classList.toggle("hidden");
+});
+document.querySelectorAll("#proxy-dropdown [data-proxy]").forEach(btn => {
+  btn.addEventListener("click", async (e) => {
+    const proxy = e.currentTarget.dataset.proxy;
+    await setProxy(proxy);
+    setCurrentProxy(proxy);
+    proxyDropdown.classList.add("hidden");
+    const tab = getActiveTab();
+    if (tab) renderTabContent(tab);
+  });
+});
+updateProxyToggleUI(getCurrentProxy());
+
+// --- Proxy Setup ---
+let backend = getCurrentProxy();
+let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
+let transport = localStorage.getItem("proxy-transport");
+setWisp(wisp);
+setProxy(backend);
+if (transport) setTransport(transport);
+else if (navigator.userAgent.indexOf("Firefox") > 0) setTransport("libcurl");
+else setTransport("epoxy");
+
+// --- Tabs Logic ---
+let tabs = [];
+let activeTab = null;
+let tabIdCounter = 1;
+let closedTabsSnapshot = [];
+function createTab(url = "") {
+  const id = "tab-" + tabIdCounter++;
+  return {
+    id,
+    title: url ? url : "New Tab",
+    url,
+    history: url ? [url] : [],
+    pointer: url ? 0 : -1
+  };
+}
+function renderTabs() {
+  const tabsBar = document.getElementById("tabs-bar");
+  tabsBar.innerHTML = "";
+  tabs.forEach((tab, idx) => {
+    const tabElement = document.createElement("div");
+    tabElement.className = `
+      relative flex items-center cursor-pointer select-none transition-all duration-200 group
+      ${tab.id === activeTab 
+        ? 'bg-dark-600 text-white border-t-2 border-cyan-400' 
+        : 'bg-dark-700/50 text-gray-300 hover:bg-dark-600/70 hover:text-white border-t-2 border-transparent'
+      }
+    `;
+    tabElement.style.cssText = `
+      height: 36px;
+      min-width: 180px;
+      max-width: 240px;
+      margin-right: -8px;
+      clip-path: polygon(8px 0%, calc(100% - 8px) 0%, 100% 100%, 0% 100%);
+      padding: 0 20px 0 16px;
+      z-index: ${tab.id === activeTab ? '10' : '1'};
+    `;
+    tabElement.setAttribute("draggable", "true");
+    tabElement.setAttribute("data-tab-id", tab.id);
+    const content = document.createElement("div");
+    content.className = "flex items-center w-full h-full";
+    const title = document.createElement("span");
+    title.textContent = tab.title.length > 18 ? tab.title.slice(0, 15) + "..." : tab.title;
+    title.className = "flex-1 truncate text-sm font-medium";
+    content.appendChild(title);
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "ml-2 w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-200 opacity-0 group-hover:opacity-100";
+    closeBtn.innerHTML = "&times;";
+    closeBtn.title = "Close Tab (Ctrl+W)";
+    closeBtn.style.fontSize = "16px";
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      removeTab(tab.id);
+    };
+    content.appendChild(closeBtn);
+    tabElement.appendChild(content);
+    tabElement.onclick = () => setActiveTab(tab.id);
+    tabElement.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", tab.id);
+      tabElement.classList.add("opacity-50");
+    });
+    tabElement.addEventListener("dragend", (e) => {
+      tabElement.classList.remove("opacity-50");
+    });
+    tabElement.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      tabElement.classList.add("ring-2", "ring-cyan-400");
+    });
+    tabElement.addEventListener("dragleave", (e) => {
+      tabElement.classList.remove("ring-2", "ring-cyan-400");
+    });
+    tabElement.addEventListener("drop", (e) => {
+      e.preventDefault();
+      tabElement.classList.remove("ring-2", "ring-cyan-400");
+      const draggedTabId = e.dataTransfer.getData("text/plain");
+      reorderTab(draggedTabId, tab.id);
+    });
+    tabsBar.appendChild(tabElement);
+  });
+}
+function updateAddressBar(tab) {
+  document.getElementById("address-bar-input").value = tab.history[tab.pointer] || "";
+}
+function renderTabContent(tab) {
+  const iframe = document.getElementById("proxy-iframe");
+  if (!tab || typeof tab.pointer !== "number" || tab.pointer < 0 || !tab.history[tab.pointer]) {
+    iframe.src = "";
+    return;
+  }
+  let url = tab.history[tab.pointer];
+  let search = getCurrentSearchEngine();
+  makeURLAndProxied(url, search).then(src => { iframe.src = src; });
+}
+async function makeURLAndProxied(url, search) {
+  try {
+    let urlToLoad = makeURL(url, search);
+    return await getProxied(urlToLoad);
+  } catch (e) { return ""; }
+}
+function setActiveTab(tabId) {
+  activeTab = tabId;
+  renderTabs();
+  const tab = tabs.find(t => t.id === tabId);
+  updateAddressBar(tab);
+  renderTabContent(tab);
+}
+function addTab(url = "") {
+  const tab = createTab(url);
+  tabs.push(tab);
+  setActiveTab(tab.id);
+}
+function removeTab(tabId) {
+  const idx = tabs.findIndex(t => t.id === tabId);
+  if (idx !== -1) {
+    takeTabsSnapshot();
+    tabs.splice(idx, 1);
+    if (activeTab === tabId) {
+      if (tabs[idx - 1]) setActiveTab(tabs[idx - 1].id);
+      else if (tabs[idx]) setActiveTab(tabs[idx].id);
+      else {
+        activeTab = null;
+        renderTabs();
+        document.getElementById("proxy-iframe").src = "";
+        document.getElementById("address-bar-input").value = "";
+      }
+    } else {
+      renderTabs();
+    }
+  }
+}
+function reorderTab(draggedTabId, targetTabId) {
+  const fromIdx = tabs.findIndex(t => t.id === draggedTabId);
+  const toIdx = tabs.findIndex(t => t.id === targetTabId);
+  if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+  const [removed] = tabs.splice(fromIdx, 1);
+  tabs.splice(toIdx, 0, removed);
+  renderTabs();
+}
+function updateTabHistory(tab, url) {
+  if (tab.pointer < tab.history.length - 1) {
+    tab.history = tab.history.slice(0, tab.pointer + 1);
+  }
+  tab.history.push(url);
+  tab.pointer = tab.history.length - 1;
+  tab.url = url;
+  tab.title = url ? url : "New Tab";
+}
+function getActiveTab() { return tabs.find(t => t.id === activeTab); }
+
+
+const addressInput = document.getElementById("address-bar-input");
+const suggestionBox = document.getElementById("suggestion-box");
+let suggestionActive = -1;
+let currentSuggestions = [];
+let suggestionFetchController = null;
+addressInput.addEventListener("input", async function(e) {
+  const val = addressInput.value.trim();
+  if (!val || val.startsWith("http")) {
+    suggestionBox.classList.add("hidden");
+    suggestionBox.innerHTML = "";
+    currentSuggestions = [];
+    suggestionActive = -1;
+    return;
+  }
+  
+  const apiUrl = "https://corsproxy.io/?" + encodeURIComponent("https://ac.duckduckgo.com/ac/?q=" + encodeURIComponent(val) + "&type=list");
+  if (suggestionFetchController) suggestionFetchController.abort();
+  suggestionFetchController = new AbortController();
+  try {
+    const resp = await fetch(apiUrl, { signal: suggestionFetchController.signal });
+    if (!resp.ok) throw new Error();
+    const data = await resp.json();
+    currentSuggestions = (data || []).map(s => s.phrase).filter(Boolean);
+    if (currentSuggestions.length === 0) {
+      suggestionBox.classList.add("hidden");
+      suggestionBox.innerHTML = "";
+      suggestionActive = -1;
+      return;
+    }
+    suggestionBox.innerHTML = currentSuggestions.map((s, i) =>
+      `<div class="suggestion-item${i === suggestionActive ? ' active' : ''}" data-idx="${i}">${s.replace(/</g,"&lt;")}</div>`
+    ).join("");
+    suggestionBox.classList.remove("hidden");
+    suggestionActive = -1;
+  } catch (err) {
+    suggestionBox.classList.add("hidden");
+    suggestionBox.innerHTML = "";
+    currentSuggestions = [];
+    suggestionActive = -1;
+  }
+});
+addressInput.addEventListener("keydown", function(e) {
+  if (!currentSuggestions.length || suggestionBox.classList.contains("hidden")) return;
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    suggestionActive = (suggestionActive + 1) % currentSuggestions.length;
+    updateSuggestionBoxActive();
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    suggestionActive = (suggestionActive - 1 + currentSuggestions.length) % currentSuggestions.length;
+    updateSuggestionBoxActive();
+  } else if (e.key === "Enter") {
+    if (suggestionActive !== -1) {
+      e.preventDefault();
+      selectSuggestion(suggestionActive);
+    }
+    suggestionBox.classList.add("hidden");
+  } else if (e.key === "Escape") {
+    suggestionBox.classList.add("hidden");
+    suggestionActive = -1;
+  }
+});
+function updateSuggestionBoxActive() {
+  Array.from(suggestionBox.children).forEach((el, i) => {
+    if (i === suggestionActive) el.classList.add("active");
+    else el.classList.remove("active");
+  });
+  if (suggestionActive !== -1) {
+    const el = suggestionBox.children[suggestionActive];
+    if (el) el.scrollIntoView({ block: "nearest" });
+    addressInput.value = currentSuggestions[suggestionActive];
+  }
+}
+function selectSuggestion(idx) {
+  if (idx < 0 || idx >= currentSuggestions.length) return;
+  addressInput.value = currentSuggestions[idx];
+  suggestionBox.classList.add("hidden");
+  suggestionActive = -1;
+}
+suggestionBox.addEventListener("mousedown", function(e) {
+  const target = e.target.closest('.suggestion-item');
+  if (target) {
+    const idx = parseInt(target.dataset.idx);
+    selectSuggestion(idx);
+    setTimeout(() => {
+      document.getElementById("address-bar-form").dispatchEvent(new Event("submit"));
+    }, 0);
+  }
+});
+document.addEventListener("click", function(e) {
+  if (!suggestionBox.contains(e.target) && e.target !== addressInput) {
+    suggestionBox.classList.add("hidden");
+    suggestionActive = -1;
+  }
+  if (!proxyDropdown.contains(e.target) && e.target !== proxyToggleBtn) {
+    proxyDropdown.classList.add("hidden");
+  }
+  if (!searchEngineDropdown.contains(e.target) && e.target !== searchEngineBtn) {
+    searchEngineDropdown.classList.add("hidden");
+  }
+});
+
+
+document.getElementById("address-bar-form").addEventListener("submit", async function(event) {
+  event.preventDefault();
+  suggestionBox.classList.add("hidden");
+  suggestionActive = -1;
+  const tab = getActiveTab();
+  if (!tab) return;
+  let url = addressInput.value.trim();
+  if (!url) return;
+  updateTabHistory(tab, url);
+  renderTabs();
+  renderTabContent(tab);
+});
+document.getElementById("back-btn").onclick = function() {
+  const tab = getActiveTab();
+  if (!tab || tab.pointer <= 0) return;
+  tab.pointer--;
+  updateAddressBar(tab);
+  renderTabContent(tab);
+};
+document.getElementById("forward-btn").onclick = function() {
+  const tab = getActiveTab();
+  if (!tab || tab.pointer >= tab.history.length - 1) return;
+  tab.pointer++;
+  updateAddressBar(tab);
+  renderTabContent(tab);
+};
+document.getElementById("refresh-btn").onclick = function() {
+  const tab = getActiveTab();
+  if (!tab || typeof tab.pointer !== "number" || tab.pointer < 0) return;
+  renderTabContent(tab);
+};
+document.getElementById("home-btn").onclick = function() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  const homepage = "";
+  updateTabHistory(tab, homepage);
+  updateAddressBar(tab);
+  renderTabContent(tab);
+};
+function takeTabsSnapshot() {
+  closedTabsSnapshot = JSON.parse(JSON.stringify(tabs));
+  localStorage.setItem("carbon-proxy-last-tabs", JSON.stringify(closedTabsSnapshot));
+}
+function restoreTabsFromSnapshot() {
+  let fromLS = localStorage.getItem("carbon-proxy-last-tabs");
+  let snapshot = closedTabsSnapshot.length
+    ? closedTabsSnapshot
+    : (fromLS ? JSON.parse(fromLS) : []);
+  if (!snapshot.length) return;
+  tabs = snapshot.map(tab => ({
+    ...tab,
+    id: "tab-" + (tabIdCounter++),
+  }));
+  activeTab = tabs.length ? tabs[0].id : null;
+  renderTabs();
+  setActiveTab(activeTab);
+  closedTabsSnapshot = [];
+  localStorage.removeItem("carbon-proxy-last-tabs");
+}
+const menuBtn = document.getElementById("menu-btn");
+const dropdown = document.getElementById("dropdown-menu");
+menuBtn.onclick = (e) => { dropdown.classList.toggle("hidden"); e.stopPropagation(); };
+window.onclick = (e) => {
+  if (!dropdown.contains(e.target) && e.target !== menuBtn) dropdown.classList.add("hidden");
+};
+document.getElementById("clear-history-btn").onclick = function() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  tab.history = [];
+  tab.pointer = -1;
+  tab.url = "New Tab";
+  tab.title = "New Tab";
+  updateAddressBar(tab);
+  renderTabContent(tab);
+  dropdown.classList.add("hidden");
+};
+document.getElementById("close-all-tabs-btn").onclick = function() {
+  if (tabs.length > 0) takeTabsSnapshot();
+  tabs = [];
+  activeTab = null;
+  renderTabs();
+  document.getElementById("proxy-iframe").src = "";
+  document.getElementById("address-bar-input").value = "";
+  dropdown.classList.add("hidden");
+};
+document.getElementById("restore-tabs-btn").onclick = function() {
+  restoreTabsFromSnapshot();
+  dropdown.classList.add("hidden");
+};
+document.getElementById("new-tab-btn").addEventListener("click", () => addTab());
+
+
+const historyBtn = document.getElementById("history-btn");
+const historyModalBg = document.getElementById("history-modal-bg");
+const historyModal = document.getElementById("history-modal");
+const modalHistoryList = document.getElementById("modal-history-list");
+const closeHistoryModalBtn = document.getElementById("close-history-modal");
+historyBtn.onclick = (e) => { renderModalHistoryList(); openHistoryModal(); e.stopPropagation(); };
+closeHistoryModalBtn.onclick = closeHistoryModal;
+historyModalBg.onclick = function(e) { if (e.target === historyModalBg) closeHistoryModal(); };
+function openHistoryModal() {
+  historyModalBg.classList.remove("pointer-events-none", "opacity-0");
+  historyModalBg.classList.add("pointer-events-auto", "opacity-100");
+  historyModal.classList.remove("scale-95", "opacity-0");
+  historyModal.classList.add("scale-100", "opacity-100");
+}
+function closeHistoryModal() {
+  historyModalBg.classList.add("pointer-events-none", "opacity-0");
+  historyModalBg.classList.remove("pointer-events-auto", "opacity-100");
+  historyModal.classList.add("scale-95", "opacity-0");
+  historyModal.classList.remove("scale-100", "opacity-100");
+}
+function renderModalHistoryList() {
+  const tab = getActiveTab();
+  modalHistoryList.innerHTML = "";
+  if (!tab || !tab.history.length) {
+    modalHistoryList.innerHTML = "<div class='text-gray-500 italic text-center py-4'>No history for this tab.</div>";
+    return;
+  }
+  tab.history.forEach((url, idx) => {
+    const row = document.createElement("div");
+    row.className = `flex items-center justify-between p-3 rounded-lg hover:bg-dark-600 cursor-pointer transition-colors ${idx === tab.pointer ? 'bg-cyan-500/20 border border-cyan-400' : ''}`;
+    row.innerHTML = `<span class="flex-1 ${idx === tab.pointer ? 'text-cyan-400 font-bold' : ''} truncate">${url}</span>`;
+    row.onclick = () => {
+      tab.pointer = idx;
+      updateAddressBar(tab);
+      renderTabContent(tab);
+      closeHistoryModal();
+    };
+    if (tab.history.length > 1) {
+      const rmBtn = document.createElement("button");
+      rmBtn.className = "ml-2 text-gray-400 hover:text-red-500";
+      rmBtn.title = "Remove from history";
+      rmBtn.textContent = "✕";
+      rmBtn.onclick = (e) => {
+        e.stopPropagation();
+        tab.history.splice(idx, 1);
+        if (tab.pointer >= tab.history.length) tab.pointer = tab.history.length - 1;
+        renderModalHistoryList();
+      };
+      row.appendChild(rmBtn);
+    }
+    modalHistoryList.appendChild(row);
+  });
+}
+
+// -- Keyboard Shortcuts --
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "t") {
+    e.preventDefault(); addTab();
+  }
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "w") {
+    e.preventDefault(); if (activeTab) removeTab(activeTab);
+  }
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === "Tab") {
+    e.preventDefault();
+    const idx = tabs.findIndex(t => t.id === activeTab);
+    if (tabs.length > 1 && idx !== -1) setActiveTab(tabs[(idx + 1) % tabs.length].id);
+  }
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "Tab") {
+    e.preventDefault();
+    const idx = tabs.findIndex(t => t.id === activeTab);
+    if (tabs.length > 1 && idx !== -1) setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length].id);
+  }
+  if (e.altKey && !e.shiftKey && e.key === "ArrowLeft") document.getElementById("back-btn").click();
+  if (e.altKey && !e.shiftKey && e.key === "ArrowRight") document.getElementById("forward-btn").click();
+});
+
+// -- INIT --
+window.addEventListener("DOMContentLoaded", () => {
+  if (tabs.length === 0) addTab();
+});
+</script>
 </body>
 </html>
