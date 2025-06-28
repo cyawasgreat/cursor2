@@ -4,35 +4,44 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CARBON</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer async>
+      function setConfig() {
+        tailwind.config = {
+          theme: {
+            extend: {
+              fontFamily: {
+                inter: ["Inter", "sans-serif"],
+              },
+              colors: {
+                dark: {
+                  900: "#0f0f23",
+                  800: "#1a1a2e",
+                  700: "#23234d",
+                  600: "#2c2c5c",
+                  500: "#16213e",
+                },
+              },
+            },
+          },
+        };
+      }
+    </script>
+
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" />
+    <script
+      defer
+      async
+      src="https://cdn.tailwindcss.com"
+      onload="setConfig()"
+    ></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link
-      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
-      rel="stylesheet"
-    />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              inter: ["Inter", "sans-serif"],
-            },
-            colors: {
-              dark: {
-                900: "#0f0f23",
-                800: "#1a1a2e",
-                700: "#23234d",
-                600: "#2c2c5c",
-                500: "#16213e",
-              },
-            },
-          },
-        },
-      };
-    </script>
+    <link href="/css/boxicons.min.css" rel="stylesheet" />
+
     <style>
       .suggestion-box {
         position: absolute;
@@ -143,25 +152,25 @@
                 <div class="flex items-center gap-2">
                   <button
                     id="back-btn"
-                    class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
+                    class="w-10 h-10 rounded-xl border-cyan-400 border-2 bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
                     title="Back"
                   >
                     <i
-                      class="bx bx-arrow-back text-2xl text-gray-300 group-hover:text-white transition-colors"
+                      class="bx bx-left-arrow-alt text-2xl border-cyan-400 text-gray-300 group-hover:text-white transition-colors"
                     ></i>
                   </button>
                   <button
                     id="forward-btn"
-                    class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
+                    class="w-10 h-10 rounded-xl bg-dark-600 border-cyan-400 border-2 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
                     title="Forward"
                   >
                     <i
-                      class="bx bx-arrow-forward text-2xl text-gray-300 group-hover:text-white transition-colors"
+                      class="bx bx-right-arrow-alt text-2xl text-gray-300 group-hover:text-white transition-colors"
                     ></i>
                   </button>
                   <button
                     id="refresh-btn"
-                    class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
+                    class="border-cyan-400 border-2 w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
                     title="Refresh"
                   >
                     <i
@@ -170,7 +179,7 @@
                   </button>
                   <button
                     id="home-btn"
-                    class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
+                    class="w-10 h-10 border-cyan-400 border-2 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
                     title="Home"
                   >
                     <i
@@ -179,7 +188,7 @@
                   </button>
                   <button
                     id="history-btn"
-                    class="w-10 h-10 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
+                    class="w-10 h-10 rounded-xl bg-dark-600 border-cyan-400 border-2 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
                     title="Show History"
                   >
                     <i
@@ -190,61 +199,26 @@
               </div>
 
               <!-- Address Bar -->
-              <div class="p-4 bg-dark-700/30 relative">
-                <form id="address-bar-form" class="w-full">
-                  <input
-                    id="address-bar-input"
-                    type="text"
-                    spellcheck="false"
-                    autocomplete="off"
-                    placeholder="Search the web freely"
-                    class="w-full bg-dark-600 border-2 border-cyan-400 text-white rounded-xl px-6 py-4 text-lg placeholder-gray-400 focus:outline-none focus:border-cyan-300 focus:bg-dark-500 transition-all duration-300"
-                  />
-                </form>
-                <div id="suggestion-box" class="suggestion-box hidden"></div>
-              </div>
+              <form id="address-bar-form" class="w-full">
+                <input
+                  id="address-bar-input"
+                  type="text"
+                  spellcheck="false"
+                  autocomplete="off"
+                  placeholder="Search the web freely"
+                  class="w-full h-12 bg-dark-600 border-2 border-cyan-400 text-white rounded-xl px-6 py-4 text-lg placeholder-gray-400 focus:outline-none focus:border-cyan-300"
+                />
+              </form>
+              <div id="suggestion-box" class="suggestion-box hidden"></div>
 
               <!-- Search Engine Icon Button Right -->
               <div class="flex items-center gap-6">
                 <!-- 3-Dots Menu -->
-                <div class="relative">
-                  <button
-                    id="menu-btn"
-                    class="w-12 h-12 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
-                    title="Menu"
-                  >
-                    <i
-                      class="bx bx-dots-horizontal-rounded text-2xl text-gray-300 group-hover:text-white transition-colors"
-                    ></i>
-                  </button>
-                  <div
-                    id="dropdown-menu"
-                    class="hidden absolute right-0 top-14 bg-dark-700 border border-dark-600 rounded-xl shadow-xl z-50 min-w-[180px] py-2"
-                  >
-                    <button
-                      id="clear-history-btn"
-                      class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm"
-                    >
-                      Clear History
-                    </button>
-                    <button
-                      id="close-all-tabs-btn"
-                      class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm"
-                    >
-                      Close All Tabs
-                    </button>
-                    <button
-                      id="restore-tabs-btn"
-                      class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm"
-                    >
-                      Restore Tabs
-                    </button>
-                  </div>
-                </div>
+
                 <div class="relative">
                   <button
                     id="search-engine-btn"
-                    class="w-12 h-12 rounded-xl bg-dark-600 hover:bg-dark-500 text-cyan-400 border-2 border-cyan-400 flex items-center justify-center text-2xl group transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    class="w-12 h-12 rounded-xl border-cyan-400 border-2 bg-dark-600 hover:bg-dark-500 text-cyan-400 border-2 border-cyan-400 flex items-center justify-center text-2xl group transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     title="Switch Search"
                   >
                     <i
@@ -258,7 +232,7 @@
                   >
                     <button
                       data-engine="https://search.brave.com/search?q=%s"
-                      class="w-full flex items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"
+                      class="w-full flex border-cyan-400 border-2 items-center gap-2 px-4 py-3 text-white hover:bg-dark-600 transition-colors text-lg"
                     >
                       <i class="bx bxl-brave"></i>Brave
                     </button>
@@ -294,6 +268,40 @@
                     </button>
                   </div>
                 </div>
+                <div class="relative">
+                  <button
+                    id="menu-btn"
+                    class="w-12 border-cyan-400 border-2 h-12 rounded-xl bg-dark-600 hover:bg-dark-500 transition-colors duration-200 flex items-center justify-center group"
+                    title="Menu"
+                  >
+                    <i
+                      class="bx bx-dots-horizontal-rounded text-2xl text-gray-300 group-hover:text-white transition-colors"
+                    ></i>
+                  </button>
+                  <div
+                    id="dropdown-menu"
+                    class="hidden dropdown-list absolute right-0 top-14 bg-dark-700 border-2 border-cyan-400 rounded-xl shadow-xl z-50 py-1"
+                  >
+                    <button
+                      id="clear-history-btn"
+                      class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm"
+                    >
+                      Clear History
+                    </button>
+                    <button
+                      id="close-all-tabs-btn"
+                      class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm"
+                    >
+                      Close All Tabs
+                    </button>
+                    <button
+                      id="restore-tabs-btn"
+                      class="w-full text-left px-4 py-2 text-white hover:bg-dark-600 transition-colors text-sm"
+                    >
+                      Restore Tabs
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -312,7 +320,7 @@
       <!-- History Modal -->
       <div
         id="history-modal-bg"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-50"
+        class="fixed border-cyan-400 border-2 inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-50"
       >
         <div
           id="history-modal"
@@ -784,13 +792,10 @@
       };
       function takeTabsSnapshot() {
         closedTabsSnapshot = JSON.parse(JSON.stringify(tabs));
-        localStorage.setItem(
-          "carbon-proxy-last-tabs",
-          JSON.stringify(closedTabsSnapshot),
-        );
+        localStorage.setItem("last-tabs", JSON.stringify(closedTabsSnapshot));
       }
       function restoreTabsFromSnapshot() {
-        let fromLS = localStorage.getItem("carbon-proxy-last-tabs");
+        let fromLS = localStorage.getItem("last-tabs");
         let snapshot = closedTabsSnapshot.length
           ? closedTabsSnapshot
           : fromLS
@@ -805,7 +810,7 @@
         renderTabs();
         setActiveTab(activeTab);
         closedTabsSnapshot = [];
-        localStorage.removeItem("carbon-proxy-last-tabs");
+        localStorage.removeItem("last-tabs");
       }
       const menuBtn = document.getElementById("menu-btn");
       const dropdown = document.getElementById("dropdown-menu");
@@ -946,9 +951,7 @@
       });
 
       // -- INIT --
-      window.addEventListener("DOMContentLoaded", () => {
-        if (tabs.length === 0) addTab();
-      });
+      if (tabs.length === 0) addTab();
     </script>
   </body>
 </html>
