@@ -81,9 +81,9 @@
 
     <!-- Mobile Menu -->
     <div class="fixed top-0 right-[-100%] w-72 h-full bg-[#0f0f23f2] backdrop-blur-md border-l border-white/10 pt-24 px-8 z-[999] transition-all duration-300" id="mobileMenu">
-        <a href="#home" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Home</a>
+        <a href="/" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Home</a>
         <a href="#games" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Games</a>
-        <a href="#proxy" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Proxy</a>
+        <a href="/proxy" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Proxy</a>
     </div>
     <div class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]" id="overlay"></div>
 
@@ -95,7 +95,7 @@
         </div>
         <iframe title="Proxy Frame" id="frame" class="z-[100] w-full h-[calc(100%-3rem)] border-0"></iframe>
     </div>
-      <form id="form" class="flex-center w-full">
+      <form id="form" class="w-full md:w-2/3 lg:w-1/2">
         <input
           autofocus="true"
           spellcheck="false"
@@ -103,7 +103,7 @@
           id="address"
           type="text"
           placeholder="Search the web freely"
-          class="bg-transparent w-full focus:outline-none"
+          class="bg-transparent w-full focus:outline-none border-b-2 border-cyan-400 text-center py-2 text-xl transition-all duration-300 placeholder-white/50 focus:border-indigo-500"
         />
       </form>
         <link rel="modulepreload" href="https://cdn.jsdelivr.net/gh/Coding4Hours/cdn/uv/uv.bundle.js">
