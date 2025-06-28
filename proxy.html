@@ -41,6 +41,7 @@
       rel="stylesheet"
     />
     <link href="/css/boxicons.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
       .suggestion-box {
@@ -199,7 +200,7 @@
               </div>
 
               <!-- Address Bar -->
-              <form id="address-bar-form" class="w-full">
+              <form id="address-bar-form" class="w-full relative">
                 <input
                   id="address-bar-input"
                   type="text"
@@ -208,8 +209,9 @@
                   placeholder="Search the web freely"
                   class="w-full h-12 bg-dark-600 border-2 border-cyan-400 text-white rounded-xl px-6 py-4 text-lg placeholder-gray-400 focus:outline-none focus:border-cyan-300"
                 />
+
+                <div id="suggestion-box" class="suggestion-box hidden"></div>
               </form>
-              <div id="suggestion-box" class="suggestion-box hidden"></div>
 
               <!-- Search Engine Icon Button Right -->
               <div class="flex items-center gap-6">
@@ -497,7 +499,6 @@
       padding: 0 20px 0 16px;
       z-index: ${tab.id === activeTab ? "10" : "1"};
     `;
-          tabElement.setAttribute("draggable", "true");
           tabElement.setAttribute("data-tab-id", tab.id);
           const content = document.createElement("div");
           content.className = "flex items-center w-full h-full";
@@ -519,26 +520,6 @@
           content.appendChild(closeBtn);
           tabElement.appendChild(content);
           tabElement.onclick = () => setActiveTab(tab.id);
-          tabElement.addEventListener("dragstart", (e) => {
-            e.dataTransfer.setData("text/plain", tab.id);
-            tabElement.classList.add("opacity-50");
-          });
-          tabElement.addEventListener("dragend", (e) => {
-            tabElement.classList.remove("opacity-50");
-          });
-          tabElement.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            tabElement.classList.add("ring-2", "ring-cyan-400");
-          });
-          tabElement.addEventListener("dragleave", (e) => {
-            tabElement.classList.remove("ring-2", "ring-cyan-400");
-          });
-          tabElement.addEventListener("drop", (e) => {
-            e.preventDefault();
-            tabElement.classList.remove("ring-2", "ring-cyan-400");
-            const draggedTabId = e.dataTransfer.getData("text/plain");
-            reorderTab(draggedTabId, tab.id);
-          });
           tabsBar.appendChild(tabElement);
         });
       }
@@ -602,14 +583,6 @@
           }
         }
       }
-      function reorderTab(draggedTabId, targetTabId) {
-        const fromIdx = tabs.findIndex((t) => t.id === draggedTabId);
-        const toIdx = tabs.findIndex((t) => t.id === targetTabId);
-        if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
-        const [removed] = tabs.splice(fromIdx, 1);
-        tabs.splice(toIdx, 0, removed);
-        renderTabs();
-      }
       function updateTabHistory(tab, url) {
         if (tab.pointer < tab.history.length - 1) {
           tab.history = tab.history.slice(0, tab.pointer + 1);
@@ -638,13 +611,7 @@
           return;
         }
 
-        const apiUrl =
-          "https://corsproxy.io/?" +
-          encodeURIComponent(
-            "https://ac.duckduckgo.com/ac/?q=" +
-              encodeURIComponent(val) +
-              "&type=list",
-          );
+        const apiUrl = `https://corsproxy.io/?url=${encodeURIComponent(`https://duckduckgo.com/ac/?q=${encodeURIComponent(val)}&type=list`)}`;
         if (suggestionFetchController) suggestionFetchController.abort();
         suggestionFetchController = new AbortController();
         try {
@@ -653,9 +620,17 @@
           });
           if (!resp.ok) throw new Error();
           const data = await resp.json();
-          currentSuggestions = (data || [])
-            .map((s) => s.phrase)
-            .filter(Boolean);
+          let suggestionsData;
+          if (data.contents) {
+            if (typeof data.contents === "string") {
+              suggestionsData = JSON.parse(data.contents);
+            } else {
+              suggestionsData = data.contents;
+            }
+          } else {
+            suggestionsData = data;
+          }
+          currentSuggestions = (suggestionsData[1] || []).filter(Boolean);
           if (currentSuggestions.length === 0) {
             suggestionBox.classList.add("hidden");
             suggestionBox.innerHTML = "";
@@ -952,6 +927,18 @@
 
       // -- INIT --
       if (tabs.length === 0) addTab();
+
+      const tabsContainer = document.getElementById("tabs-bar");
+      new Sortable(tabsContainer, {
+        animation: 150,
+        onEnd: function (evt) {
+          const { oldIndex, newIndex } = evt;
+          if (oldIndex === newIndex) return;
+          const [movedTab] = tabs.splice(oldIndex, 1);
+          tabs.splice(newIndex, 0, movedTab);
+          renderTabs();
+        },
+      });
     </script>
   </body>
 </html>

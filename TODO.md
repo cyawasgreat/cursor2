@@ -1,4 +1,4 @@
 # TODO
 
-- [ ] comments for games
-  - [ ] protection against xss attack and more
+- [x] comments for games
+  - [x] protection against xss attack and more
