@@ -188,15 +188,6 @@
                     ></i>
                   </button>
                   <button
-                    id="home-btn"
-                    class="w-10 h-10 border-foam border-2 rounded-xl bg-highlight-med hover:bg-highlight-high transition-colors duration-200 flex items-center justify-center group"
-                    title="Home"
-                  >
-                    <i
-                      class="bx bx-home-alt text-2xl text-subtle group-hover:text-text transition-colors"
-                    ></i>
-                  </button>
-                  <button
                     id="history-btn"
                     class="w-10 h-10 rounded-xl bg-highlight-med border-foam border-2 hover:bg-highlight-high transition-colors duration-200 flex items-center justify-center group"
                     title="Show History"
@@ -780,14 +771,6 @@
       document.getElementById("refresh-btn").onclick = function () {
         const tab = getActiveTab();
         if (!tab || typeof tab.pointer !== "number" || tab.pointer < 0) return;
-        renderTabContent(tab);
-      };
-      document.getElementById("home-btn").onclick = function () {
-        const tab = getActiveTab();
-        if (!tab) return;
-        const homepage = "";
-        updateTabHistory(tab, homepage);
-        updateAddressBar(tab);
         renderTabContent(tab);
       };
       function takeTabsSnapshot() {
