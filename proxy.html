@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CARBON</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer async src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="styles.css"></link>
-    <script src="/js/hamburger.js"></script>
+    <script defer async src="/js/hamburger.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative">
@@ -26,15 +26,16 @@
         <a href="#games" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Games</a>
         <a href="#proxy" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Proxy</a>
     </div>
-    <div class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]" id="overlay" onclick="closeMenu()"></div>
-
-    <!-- Animated Blobs -->
-    <div class="blob1 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:300px;height:300px;top:10%;left:10%;background:linear-gradient(45deg,#00d4ff,#5865f2);animation:float 20s infinite ease-in-out;"></div>
-    <div class="blob2 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:250px;height:250px;top:60%;right:10%;background:linear-gradient(45deg,#5865f2,#8b5cf6);animation:float 20s infinite ease-in-out -7s;"></div>
-    <div class="blob3 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:200px;height:200px;bottom:20%;left:20%;background:linear-gradient(45deg,#00d4ff,#8b5cf6);animation:float 20s infinite ease-in-out -14s;"></div>
+    <div class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]" id="overlay"></div>
 
     <!-- Main Content -->
     <main class="flex flex-col items-center justify-center min-h-screen pt-28 pb-8 px-4 relative z-10">
+    <div id="proxy-container" class="fixed inset-0 z-[2000] hidden">
+        <div id="proxy-controls" class="z-[150] h-12 bg-black/20 backdrop-blur-md flex items-center justify-end px-4">
+            <button id="close-proxy" class="text-white text-2xl font-bold hover:text-cyan-400 transition-colors">&times;</button>
+        </div>
+        <iframe title="Proxy Frame" id="frame" class="z-[100] w-full h-[calc(100%-3rem)] border-0"></iframe>
+    </div>
       <form id="form" class="flex-center w-full">
         <input
           autofocus="true"
@@ -46,67 +47,11 @@
           class="bg-transparent w-full focus:outline-none"
         />
       </form>
-        <script defer type="module">
-  import {
-    setTransport,
-    setWisp,
-    setProxy,
-    makeURL,
-    getProxied,
-  } from "./lethal.mjs";
-
-  // --- Form ---
-  const form = document.getElementById("form");
-  const addressInput = document.getElementById("address");
-  let search =
-    localStorage.getItem("search-engine") ||
-    "https://search.brave.com/search?q=%s";
-  let frame = document.getElementById("frame");
-
-  // --- Proxy ---
-  let backend = localStorage.getItem("proxy-backend") || "uv";
-  let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
-  let transport = localStorage.getItem("proxy-transport");
-
-  setWisp(wisp);
-  setProxy(backend);
-
-  if (transport) setTransport(transport);
-  else if (navigator.userAgent.indexOf("Firefox") > 0) setTransport("libcurl");
-  else setTransport("epoxy");
-
-  // --- Form ---
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    frame.style.display="inline";
-    const urlToLoad = makeURL(addressInput.value, search);
-    frame.src = await getProxied(urlToLoad);
-  });
-
-  // --- Event Listeners ---
-  // basically we monkey patch localstorage.setitem to emit an event
-  window.addEventListener("search-engine-changed", () => {
-    search = localStorage.getItem("search-engine");
-  });
-
-  window.addEventListener("proxy-backend-changed", () => {
-    backend = localStorage.getItem("proxy-backend");
-    setProxy(localStorage.getItem("proxy-backend"));
-  });
-
-  window.addEventListener("wisp-server-changed", () => {
-    wisp = localStorage.getItem("wisp-server");
-    setWisp(localStorage.getItem("wisp-server"));
-  });
-
-  window.addEventListener("proxy-transport-changed", () => {
-    transport = localStorage.getItem("proxy-transport");
-    setTransport(localStorage.getItem("proxy-transport"));
-  });
-      </script>
+        <link rel="modulepreload" href="https://cdn.jsdelivr.net/gh/Coding4Hours/cdn/uv/uv.bundle.js">
+    <link rel="modulepreload" href="/scram/scramjet.worker.js">
+    <script defer type="module" src="lethal.mjs"></script>
     </main>
 
-    <iframe title="Proxy Frame" id="frame" class="w-full h-full border-0 fixed"></iframe>
+
 </body>
 </html>
