@@ -79,6 +79,8 @@
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    frame.style.display="inline";
+      frame.srcdoc="loading";
     const urlToLoad = makeURL(addressInput.value, search);
     frame.src = await getProxied(urlToLoad);
   });
