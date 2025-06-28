@@ -4,599 +4,167 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CARBON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-            color: white;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background: rgba(15, 15, 35, 0.8);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 1000;
-            animation: slideDown 0.5s ease-out;
-        }
-
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         @keyframes slideDown {
-            from {
-                transform: translateY(-100%);
-            }
-            to {
-                transform: translateY(0);
-            }
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
         }
-
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #00d4ff, #5865f2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
-        }
-
-        
-        .hamburger {
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: transform 0.3s ease;
-        }
-
-        .hamburger:hover {
-            transform: scale(1.1);
-        }
-
-        .hamburger span {
-            width: 25px;
-            height: 3px;
-            background: linear-gradient(135deg, #00d4ff, #5865f2);
-            margin: 3px 0;
-            transition: all 0.3s ease;
-            border-radius: 2px;
-        }
-
-        .hamburger.active span:nth-child(1) {
-            transform: rotate(45deg) translateY(9px);
-        }
-
-        .hamburger.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .hamburger.active span:nth-child(3) {
-            transform: rotate(-45deg) translateY(-9px);
-        }
-
-        
-        .mobile-menu {
-            position: fixed;
-            top: 0;
-            right: -100%;
-            width: 300px;
-            height: 100vh;
-            background: rgba(15, 15, 35, 0.95);
-            backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 6rem 2rem 2rem;
-            transition: right 0.3s ease;
-            z-index: 999;
-        }
-
-        .mobile-menu.active {
-            right: 0;
-        }
-
-        .mobile-menu-item {
-            display: block;
-            padding: 1rem 0;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .mobile-menu-item::before {
-            content: '';
-            position: absolute;
-            left: -100%;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .mobile-menu-item:hover::before {
-            left: 100%;
-        }
-
-        .mobile-menu-item:hover {
-            color: #00d4ff;
-            padding-left: 1rem;
-        }
-
-        
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 998;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 2rem;
-            padding-top: 6rem; /* Account for fixed navbar */
-        }
-
-        
-        .blob {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.1;
-            filter: blur(40px);
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .blob1 {
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(45deg, #00d4ff, #5865f2);
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .blob2 {
-            width: 250px;
-            height: 250px;
-            background: linear-gradient(45deg, #5865f2, #8b5cf6);
-            top: 60%;
-            right: 10%;
-            animation-delay: -7s;
-        }
-
-        .blob3 {
-            width: 200px;
-            height: 200px;
-            background: linear-gradient(45deg, #00d4ff, #8b5cf6);
-            bottom: 20%;
-            left: 20%;
-            animation-delay: -14s;
-        }
-
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spinReverse { 100% { transform: rotate(-360deg); } }
         @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-            33% {
-                transform: translateY(-30px) rotate(120deg);
-            }
-            66% {
-                transform: translateY(20px) rotate(240deg);
-            }
+            0%, 100% { transform: translateY(0px) rotate(0); }
+            33% { transform: translateY(-30px) rotate(120deg); }
+            66% { transform: translateY(20px) rotate(240deg); }
         }
-
-        
-        .logo-container {
-            margin-bottom: 2rem;
-            animation: fadeInUp 1s ease-out;
-        }
-
-        .logo {
-            width: 120px;
-            height: 120px;
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .logo:hover {
-            transform: scale(1.1) rotate(5deg);
-        }
-
-        .logo-ring {
-            position: absolute;
-            border-radius: 50%;
-            border: 8px solid;
-        }
-
-        .logo-ring-1 {
-            width: 120px;
-            height: 120px;
-            border-color: transparent;
-            border-top-color: #00d4ff;
-            border-right-color: #00d4ff;
-            transform: rotate(-45deg);
-            animation: spin 8s linear infinite;
-        }
-
-        .logo-ring-2 {
-            width: 90px;
-            height: 90px;
-            top: 15px;
-            left: 15px;
-            border-color: transparent;
-            border-bottom-color: #5865f2;
-            border-left-color: #5865f2;
-            transform: rotate(45deg);
-            animation: spin 12s linear infinite reverse;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        
-        .title {
-            font-size: clamp(3rem, 8vw, 6rem);
-            font-weight: 900;
-            background: linear-gradient(135deg, #00d4ff 0%, #5865f2 50%, #8b5cf6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-align: center;
-            margin-bottom: 3rem;
-            letter-spacing: -0.02em;
-            animation: fadeInUp 1s ease-out 0.2s both;
-        }
-
-        /* Navigation styles */
-        .nav {
-            display: flex;
-            gap: 2rem;
-            margin-bottom: 3rem;
-            animation: fadeInUp 1s ease-out 0.4s both;
-        }
-
-        .nav-button {
-            padding: 1rem 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50px;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .nav-button:hover::before {
-            left: 100%;
-        }
-
-        .nav-button:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-        }
-
-        .nav-button.about {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(88, 101, 242, 0.2));
-            border-color: #00d4ff;
-        }
-
-        .nav-button.about:hover {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(88, 101, 242, 0.3));
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
-        }
-
-        /* Interactive blob button */
-        .blob-button {
-            margin-top: 2rem;
-            animation: fadeInUp 1s ease-out 0.6s both;
-        }
-
-        .blob-btn {
-            padding: 1rem 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50px;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .blob-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .blob-btn:hover::before {
-            left: 100%;
-        }
-
-        .blob-btn:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-        }
-
-        /* Animations */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .nav {
-                flex-direction: column;
-                gap: 1rem;
-                width: 100%;
-                max-width: 300px;
-            }
-            
-            .container {
-                padding: 1rem;
-            }
-        }
-
-        /* Particle animation */
-        .particle {
-            position: absolute;
-            background: rgba(0, 212, 255, 0.6);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: particle-float 3s ease-out forwards;
-        }
-
         @keyframes particle-float {
-            0% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-100px) scale(0);
-            }
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(0); }
+        }
+        @keyframes ripple {
+            to { transform: scale(4); opacity: 0; }
         }
     </style>
 </head>
-<body>
-    
-    <nav class="navbar">
-        <div class="navbar-brand">CARBON</div>
-        <div class="hamburger" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
+<body class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative">
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-8 py-4 bg-[#0f0f23cc] border-b border-white/10 backdrop-blur-md animate-[slideDown_0.5s_ease-out]">
+        <div class="navbar-brand text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent tracking-tighter select-none">CARBON</div>
+        <div class="hamburger flex flex-col gap-1.5 cursor-pointer p-2 transition-transform duration-300" id="hamburger" onclick="toggleMenu()">
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+            <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
         </div>
     </nav>
 
-    
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="#home" class="mobile-menu-item">Home</a>
-        <a href="#games" class="mobile-menu-item">Games</a>
-        <a href="#proxy" class="mobile-menu-item">Proxy</a>
+    <!-- Mobile Menu -->
+    <div class="fixed top-0 right-[-100%] w-72 h-full bg-[#0f0f23f2] backdrop-blur-md border-l border-white/10 pt-24 px-8 z-[999] transition-all duration-300" id="mobileMenu">
+        <a href="#home" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Home</a>
+        <a href="#games" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Games</a>
+        <a href="#proxy" class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4">Proxy</a>
     </div>
+    <div class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]" id="overlay" onclick="closeMenu()"></div>
 
-    
-    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+    <!-- Animated Blobs -->
+    <div class="blob1 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:300px;height:300px;top:10%;left:10%;background:linear-gradient(45deg,#00d4ff,#5865f2);animation:float 20s infinite ease-in-out;"></div>
+    <div class="blob2 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:250px;height:250px;top:60%;right:10%;background:linear-gradient(45deg,#5865f2,#8b5cf6);animation:float 20s infinite ease-in-out -7s;"></div>
+    <div class="blob3 pointer-events-none absolute rounded-full opacity-10 blur-3xl" style="width:200px;height:200px;bottom:20%;left:20%;background:linear-gradient(45deg,#00d4ff,#8b5cf6);animation:float 20s infinite ease-in-out -14s;"></div>
 
-    <!-- Animated background blobs -->
-    <div class="blob blob1"></div>
-    <div class="blob blob2"></div>
-    <div class="blob blob3"></div>
-
-    <div class="container">
-        <!-- Logo -->
-        <div class="logo-container">
-            <div class="logo" onclick="createParticles(event)">
-                <div class="logo-ring logo-ring-1"></div>
-                <div class="logo-ring logo-ring-2"></div>
+    <!-- Main Content -->
+    <main class="flex flex-col items-center justify-center min-h-screen pt-28 pb-8 px-4 relative z-10">
+        <div class="flex flex-col items-center justify-center w-full">
+            <!-- Logo -->
+            <div class="logo-container mb-8 animate-[fadeInUp_1s_ease-out] flex justify-center">
+                <div class="logo relative w-[120px] h-[120px] cursor-pointer transition-transform duration-300 hover:scale-110 hover:rotate-3 flex items-center justify-center" onclick="createParticles(event)">
+                    <!-- Outer ring -->
+                    <div class="logo-ring logo-ring-1 absolute border-8 rounded-full" style="width:120px; height:120px; border-color:transparent; border-top-color:#00d4ff; border-right-color:#00d4ff; transform:rotate(-45deg); animation:spin 8s linear infinite;"></div>
+                    <!-- Inner ring -->
+                    <div class="logo-ring logo-ring-2 absolute top-[15px] left-[15px] border-8 rounded-full" style="width:90px; height:90px; border-color:transparent; border-bottom-color:#5865f2; border-left-color:#5865f2; transform:rotate(45deg); animation:spinReverse 12s linear infinite;"></div>
+                </div>
             </div>
+            <!-- Title -->
+            <h1 class="title font-black text-center bg-gradient-to-r from-cyan-400 via-indigo-500 to-purple-400 bg-clip-text text-transparent mb-12 tracking-tighter animate-[fadeInUp_1s_ease-out_0.2s_both] text-5xl sm:text-6xl md:text-7xl flex justify-center">CARBON</h1>
+            <!-- Blob Button (empty for now) -->
+            <div class="blob-button animate-[fadeInUp_1s_ease-out_0.6s_both]"></div>
         </div>
-
-        <!-- Title -->
-        <h1 class="title">CARBON</h1>
-
-        <!-- Blob Button -->
-        <div class="blob-button">
-        </div>
-    </div>
+    </main>
 
     <script>
-        
+        // Hamburger menu logic
         function toggleMenu() {
-            const hamburger = document.querySelector('.hamburger');
+            const hamburger = document.getElementById('hamburger');
             const mobileMenu = document.getElementById('mobileMenu');
             const overlay = document.getElementById('overlay');
-            
             hamburger.classList.toggle('active');
-            mobileMenu.classList.toggle('active');
-            overlay.classList.toggle('active');
+            if (hamburger.classList.contains('active')) {
+                // Animate hamburger
+                hamburger.children[0].style.transform = "rotate(45deg) translateY(9px)";
+                hamburger.children[1].style.opacity = "0";
+                hamburger.children[2].style.transform = "rotate(-45deg) translateY(-9px)";
+                // Show menu
+                mobileMenu.style.right = "0";
+                overlay.classList.add('opacity-100', 'visible');
+                overlay.classList.remove('opacity-0', 'invisible');
+            } else {
+                hamburger.children[0].style.transform = "";
+                hamburger.children[1].style.opacity = "";
+                hamburger.children[2].style.transform = "";
+                mobileMenu.style.right = "-100%";
+                overlay.classList.remove('opacity-100', 'visible');
+                overlay.classList.add('opacity-0', 'invisible');
+            }
         }
-
         function closeMenu() {
-            const hamburger = document.querySelector('.hamburger');
+            const hamburger = document.getElementById('hamburger');
             const mobileMenu = document.getElementById('mobileMenu');
             const overlay = document.getElementById('overlay');
-            
             hamburger.classList.remove('active');
-            mobileMenu.classList.remove('active');
-            overlay.classList.remove('active');
+            hamburger.children[0].style.transform = "";
+            hamburger.children[1].style.opacity = "";
+            hamburger.children[2].style.transform = "";
+            mobileMenu.style.right = "-100%";
+            overlay.classList.remove('opacity-100', 'visible');
+            overlay.classList.add('opacity-0', 'invisible');
         }
-
-        
         document.querySelectorAll('.mobile-menu-item').forEach(item => {
             item.addEventListener('click', closeMenu);
         });
 
-       
+        // Particle animation on logo click
         function createParticles(event) {
             const logo = event.currentTarget;
             const rect = logo.getBoundingClientRect();
-            
             for (let i = 0; i < 12; i++) {
                 const particle = document.createElement('div');
-                particle.className = 'particle';
-                
+                particle.className = 'particle pointer-events-none fixed z-[1200] bg-cyan-400 rounded-full';
                 const size = Math.random() * 8 + 4;
                 particle.style.width = size + 'px';
                 particle.style.height = size + 'px';
-                
                 const angle = (i / 12) * Math.PI * 2;
                 const distance = Math.random() * 60 + 30;
-                
                 particle.style.left = (rect.left + rect.width / 2) + 'px';
                 particle.style.top = (rect.top + rect.height / 2) + 'px';
-                
+                particle.style.background = "rgba(0,212,255,0.6)";
+                particle.style.animation = "particle-float 3s ease-out forwards";
                 document.body.appendChild(particle);
-                
-                // Animate particle
                 setTimeout(() => {
                     particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance - 50}px) scale(0)`;
                     particle.style.opacity = '0';
                 }, 10);
-                
-                // Remove particle
                 setTimeout(() => {
                     particle.remove();
                 }, 3000);
             }
         }
 
-        // Blob button animation
-        function blobAnimation(event) {
-            const button = event.currentTarget;
-            const rect = button.getBoundingClientRect();
-            
-            // Create ripple effect
-            const ripple = document.createElement('div');
-            ripple.style.position = 'absolute';
-            ripple.style.borderRadius = '50%';
-            ripple.style.background = 'rgba(255, 255, 255, 0.6)';
-            ripple.style.transform = 'scale(0)';
-            ripple.style.animation = 'ripple 0.6s linear';
-            ripple.style.left = '50%';
-            ripple.style.top = '50%';
-            ripple.style.width = '20px';
-            ripple.style.height = '20px';
-            ripple.style.marginLeft = '-10px';
-            ripple.style.marginTop = '-10px';
-            
-            button.appendChild(ripple);
-            
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        }
-
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        
+        // Blob movement on mouse move
         document.addEventListener('mousemove', (e) => {
             const mouseX = e.clientX / window.innerWidth;
             const mouseY = e.clientY / window.innerHeight;
-            
-            const blobs = document.querySelectorAll('.blob');
+            const blobs = [document.querySelector('.blob1'), document.querySelector('.blob2'), document.querySelector('.blob3')];
             blobs.forEach((blob, index) => {
+                if (!blob) return;
                 const speed = (index + 1) * 0.5;
-                const x = (mouseX - 0.5) * speed;
-                const y = (mouseY - 0.5) * speed;
-                
+                const x = (mouseX - 0.5) * speed * 30;
+                const y = (mouseY - 0.5) * speed * 30;
                 blob.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
             });
         });
     </script>
