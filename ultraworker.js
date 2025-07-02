@@ -1,6 +1,6 @@
 importScripts("https://cdn.jsdelivr.net/gh/Bromine-Labs/cdn/uv/uv.bundle.js");
 importScripts("uv.config.js");
-importScripts(__uv$config.sw);
+importScripts("/dist/uv.sw.js");
 importScripts("/scram/scramjet.shared.js", "/scram/scramjet.worker.js");
 
 if (navigator.userAgent.includes("Firefox")) {
