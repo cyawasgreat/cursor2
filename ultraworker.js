@@ -17,7 +17,7 @@ self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
-const handleReq = async (e) => {
+const handleReq = async (event) => {
   await scramjet.loadConfig();
 
   if (scramjet.route(event)) return scramjet.fetch(event);
