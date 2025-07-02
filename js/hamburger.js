@@ -21,7 +21,7 @@ const toggleMenu = () => {
   }
 };
 
-const cM = () => {
+const closeMenu = () => {
   if (hamburger.classList.contains("active")) {
     hamburger.classList.remove("active");
     hamburger.children[0].style.transform = "";
