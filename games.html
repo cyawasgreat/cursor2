@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Play Game - CARBON</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap"
@@ -22,6 +23,7 @@
     <script
       src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
     ></script>
+
     <style>
       .loader {
         border: 8px solid #16213e;
@@ -121,6 +123,7 @@
       id="overlay"
     ></div>
 
+
     <div
       id="loginScreen"
       class="flex flex-col items-center justify-center h-screen w-full bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] fixed left-0 top-0 z-50"
@@ -198,6 +201,59 @@
     </main>
 
     <script defer type="module">
+const hamburger = document.getElementById("hamburger");
+const mobileMenu = document.getElementById("mobileMenu");
+const overlay = document.getElementById("overlay");
+
+const toggleMenu = () => {
+  const isActive = hamburger.classList.toggle("active");
+  if (isActive) {
+    hamburger.children[0].style.transform = "rotate(45deg) translateY(9px)";
+    hamburger.children[1].style.opacity = "0";
+    hamburger.children[2].style.transform = "rotate(-45deg) translateY(-9px)";
+    mobileMenu.style.right = "0";
+    overlay.classList.add("opacity-100", "visible");
+    overlay.classList.remove("opacity-0", "invisible");
+  } else {
+    hamburger.children[0].style.transform = "";
+    hamburger.children[1].style.opacity = "";
+    hamburger.children[2].style.transform = "";
+    mobileMenu.style.right = "-100%";
+    overlay.classList.remove("opacity-100", "visible");
+    overlay.classList.add("opacity-0", "invisible");
+  }
+};
+
+const closeMenu = () => {
+  if (hamburger.classList.contains("active")) {
+    hamburger.classList.remove("active");
+    hamburger.children[0].style.transform = "";
+    hamburger.children[1].style.opacity = "";
+    hamburger.children[2].style.transform = "";
+    mobileMenu.style.right = "-100%";
+    overlay.classList.remove("opacity-100", "visible");
+    overlay.classList.add("opacity-0", "invisible");
+  }
+};
+
+if (hamburger && mobileMenu && overlay) {
+  hamburger.addEventListener("click", toggleMenu);
+  overlay.addEventListener("click", closeMenu);
+}
+
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  anchor.addEventListener("click", function (e) {
+    const targetId = this.getAttribute("href");
+    if (targetId.length > 1) {
+      // check if it's not just "#"
+      const target = document.querySelector(targetId);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  });
+});
       import {
         makeURL,
         getProxied,

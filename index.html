@@ -10,7 +10,7 @@
       async
       src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
     ></script>
-    <script defer async src="/js/hamburger.js"></script>
+    <!-- <script defer async src="/js/hamburger.js"></script> -->
     <link rel="stylesheet" href="styles.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap"
@@ -157,9 +157,59 @@
     </main>
     <script>
       // Minimal ES6+ event delegation for inlined handlers
-      const overlay = document.getElementById("overlay");
-      if (overlay)
-        overlay.addEventListener("click", () => window.toggleMenu?.());
+const hamburger = document.getElementById("hamburger");
+const mobileMenu = document.getElementById("mobileMenu");
+const overlay = document.getElementById("overlay");
+
+const toggleMenu = () => {
+  const isActive = hamburger.classList.toggle("active");
+  if (isActive) {
+    hamburger.children[0].style.transform = "rotate(45deg) translateY(9px)";
+    hamburger.children[1].style.opacity = "0";
+    hamburger.children[2].style.transform = "rotate(-45deg) translateY(-9px)";
+    mobileMenu.style.right = "0";
+    overlay.classList.add("opacity-100", "visible");
+    overlay.classList.remove("opacity-0", "invisible");
+  } else {
+    hamburger.children[0].style.transform = "";
+    hamburger.children[1].style.opacity = "";
+    hamburger.children[2].style.transform = "";
+    mobileMenu.style.right = "-100%";
+    overlay.classList.remove("opacity-100", "visible");
+    overlay.classList.add("opacity-0", "invisible");
+  }
+};
+
+const closeMenu = () => {
+  if (hamburger.classList.contains("active")) {
+    hamburger.classList.remove("active");
+    hamburger.children[0].style.transform = "";
+    hamburger.children[1].style.opacity = "";
+    hamburger.children[2].style.transform = "";
+    mobileMenu.style.right = "-100%";
+    overlay.classList.remove("opacity-100", "visible");
+    overlay.classList.add("opacity-0", "invisible");
+  }
+};
+
+if (hamburger && mobileMenu && overlay) {
+  hamburger.addEventListener("click", toggleMenu);
+  overlay.addEventListener("click", closeMenu);
+}
+
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  anchor.addEventListener("click", function (e) {
+    const targetId = this.getAttribute("href");
+    if (targetId.length > 1) {
+      // check if it's not just "#"
+      const target = document.querySelector(targetId);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  });
+});
       const logo = document.getElementById("logo-main");
       if (logo)
         logo.addEventListener("click", (e) => window.createParticles?.(e));
