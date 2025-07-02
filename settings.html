@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CARBON - Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-20px) rotate(120deg); }
+      66% { transform: translateY(10px) rotate(240deg); }
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeInUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(6, 182, 212, 0.5); }
+    }
+    .category-badge, .category-carousel-btn.active, .category-btn.active {
+      background-color: #22d3ee22;
+      color: #06b6d4 !important;
+      border-color: #06b6d4 !important;
+    }
+    .category-carousel-btn {
+      transition: all 0.16s;
+      border-color: #06b6d433;
+      background: #1a1a2e;
+      color: #cbd5e1;
+    }
+    .category-carousel-btn:hover {
+      color: #06b6d4 !important;
+      background: #0ea5e933;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Settings card styling */
+    .settings-card {
+      background: linear-gradient(145deg, rgba(31, 41, 55, 0.98), rgba(17, 24, 39, 0.95));
+      border: 1.5px solid rgba(6, 182, 212, 0.2);
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        0 0 60px rgba(6, 182, 212, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      font-family: 'Inter', sans-serif;
+      backdrop-filter: blur(20px);
+    }
+    .settings-section {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+    .settings-section:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(6, 182, 212, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    .settings-card label { 
+      color: #e0e7ef; 
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: -0.025em;
+    }
+    .settings-card input,
+    .settings-card select {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    .settings-card input:focus,
+    .settings-card select:focus {
+      border-color: #06b6d4;
+      outline: none;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+    }
+    .settings-card .form-checkbox:checked {
+      accent-color: #06b6d4;
+    }
+    .enhanced-button {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+    .enhanced-button:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+    .enhanced-button:hover:before {
+      left: 100%;
+    }
+    .enhanced-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .status-card {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(79, 70, 229, 0.1));
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glow-effect {
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+  </style>
+  <!-- Alpine.js and Persist Plugin CDN -->
+  <script defer src="https://unpkg.com/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative font-[Inter]" x-data="settingsPage()" x-init="init()" :class="{ 'cursor-none': hideElements }" @keydown="handleKeyPress">
+  <!-- Animated Blobs -->
+  <div class="pointer-events-none absolute rounded-full opacity-20 blur-3xl w-[400px] h-[400px] top-[5%] left-[5%] bg-gradient-to-br from-cyan-400 via-cyan-500 to-indigo-500 animate-[float_25s_infinite_ease-in-out]"></div>
+  <div class="pointer-events-none absolute rounded-full opacity-15 blur-3xl w-[350px] h-[350px] top-[50%] right-[5%] bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600 animate-[float_30s_infinite_ease-in-out] delay-[10s]"></div>
+  <div class="pointer-events-none absolute rounded-full opacity-10 blur-3xl w-[300px] h-[300px] bottom-[10%] left-[15%] bg-gradient-to-br from-cyan-400 via-purple-500 to-indigo-600 animate-[float_35s_infinite_ease-in-out] delay-[20s]"></div>
+  
+  <!-- Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-6 md:px-8 py-4 bg-[#0f0f23]/90 border-b border-white/20 backdrop-blur-xl animate-[slideDown_0.5s_ease-out] shadow-2xl">
+    <div class="navbar-brand text-2xl md:text-3xl font-black bg-gradient-to-r from-cyan-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent tracking-tighter select-none drop-shadow-sm">
+      CARBON
+    </div>
+  </nav>
+
+  <!-- Settings Card -->
+  <main class="flex items-center justify-center pt-32 pb-20 min-h-screen px-4">
+    <div class="settings-card rounded-3xl shadow-2xl p-8 md:p-10 w-full max-w-4xl space-y-8 animate-[fadeInUp_1s_ease-out] relative overflow-hidden">
+      <!-- Decorative elements -->
+      <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-400/10 to-indigo-500/10 rounded-full blur-2xl"></div>
+      <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/10 to-cyan-400/10 rounded-full blur-2xl"></div>
+      
+      <div class="relative z-10">
+        <h1 class="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tighter drop-shadow-sm">
+          Settings
+        </h1>
+        <p class="text-lg text-white/70 font-medium mb-8">Customize your CARBON experience</p>
+      </div>
+
+      <!-- Open Mode Section -->
+      <section class="settings-section">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-500 flex items-center justify-center">
+            <i class='bx bx-window-open text-white text-lg'></i>
+          </div>
+          <label class="text-xl font-bold text-white">Open Mode</label>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <button type="button"
+            :class="openMode === 'about:blank' ? 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white shadow-lg glow-effect' : 'glass-effect text-white/80 hover:bg-white/10'"
+            class="enhanced-button px-6 py-4 rounded-xl transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-2"
+            @click="setOpenMode('about:blank')">
+            <i class='bx bx-tab'></i>
+            About:blank
+          </button>
+          <button type="button"
+            :class="openMode === 'blob' ? 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white shadow-lg glow-effect' : 'glass-effect text-white/80 hover:bg-white/10'"
+            class="enhanced-button px-6 py-4 rounded-xl transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-2"
+            @click="setOpenMode('blob')">
+            <i class='bx bx-data'></i>
+            Blob
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <label class="flex items-center justify-between cursor-pointer text-white/80 p-3 rounded-lg hover:bg-white/5 transition-all duration-300" @click="alwaysOpenBlank = !alwaysOpenBlank">
+            <span class="font-medium">Always open in about:blank</span>
+            <div class="relative">
+              <input type="checkbox" class="sr-only" :checked="alwaysOpenBlank">
+              <div class="w-12 h-7 rounded-full" :class="alwaysOpenBlank ? 'bg-cyan-500' : 'bg-white/20'"></div>
+              <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform" :class="{ 'translate-x-5': alwaysOpenBlank }"></div>
+            </div>
+          </label>
+          <label class="flex items-center justify-between cursor-pointer text-white/80 p-3 rounded-lg hover:bg-white/5 transition-all duration-300" @click="alwaysOpenBlob = !alwaysOpenBlob">
+            <span class="font-medium">Always open in blob</span>
+            <div class="relative">
+              <input type="checkbox" class="sr-only" :checked="alwaysOpenBlob">
+              <div class="w-12 h-7 rounded-full" :class="alwaysOpenBlob ? 'bg-cyan-500' : 'bg-white/20'"></div>
+              <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform" :class="{ 'translate-x-5': alwaysOpenBlob }"></div>
+            </div>
+          </label>
+        </div>
+        <button class="enhanced-button bg-gradient-to-r from-cyan-500 to-indigo-500 text-black px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2"
+          @click="testOpenMode">
+          <i class='bx bx-play-circle'></i>Test Current Open Mode
+        </button>
+      </section>
+
+      <!-- Panic Key Section -->
+      <section class="settings-section">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
+            <i class='bx bx-error-alt text-white text-lg'></i>
+          </div>
+          <label class="text-xl font-bold text-white">Panic Key</label>
+        </div>
+        <div class="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
+          <select class="glass-effect border rounded-xl px-4 py-3 text-white font-medium min-w-[120px]" x-model="panicKeyType">
+            <option value="preset">A-Z Keys</option>
+            <option value="custom">Custom Key</option>
+          </select>
+          <template x-if="panicKeyType === 'preset'">
+            <select class="glass-effect border rounded-xl px-4 py-3 text-white font-medium min-w-[80px]" x-model="panicKey">
+              <template x-for="key in presetKeys" :key="key">
+                <option :value="key" x-text="key"></option>
+              </template>
+            </select>
+          </template>
+          <template x-if="panicKeyType === 'custom'">
+            <input type="text" maxlength="1" class="glass-effect border rounded-xl px-4 py-3 w-20 text-center text-white font-medium" x-model="panicKey" placeholder="Key" />
+          </template>
+        </div>
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-4">
+          <p class="text-yellow-200 font-medium flex items-center gap-2">
+            <i class='bx bx-info-circle'></i>
+            Press <kbd class="bg-yellow-500/20 px-2 py-1 rounded-lg border border-yellow-500/40 font-bold" x-text="panicKey"></kbd> to activate panic mode
+          </p>
+        </div>
+        <button class="enhanced-button bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2"
+          @click="testPanicKey">
+          <i class='bx bx-zap'></i>Test Panic Key
+        </button>
+      </section>
+
+      <!-- Tab Cloaker Section -->
+      <section class="settings-section">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+            <i class='bx bx-mask text-white text-lg'></i>
+          </div>
+          <label class="text-xl font-bold text-white">Tab Cloaker</label>
+        </div>
+        <div class="mb-4">
+          <select class="glass-effect border rounded-xl px-4 py-3 w-full md:w-auto text-white font-medium" x-model="cloakerType">
+            <option value="preset">Pre-selected site</option>
+            <option value="custom">Custom site</option>
+          </select>
+        </div>
+        <template x-if="cloakerType === 'preset'">
+          <select class="glass-effect border rounded-xl px-4 py-3 w-full mb-4 text-white font-medium" x-model="cloakerPreset">
+            <template x-for="site in presetSites" :key="site.url">
+              <option :value="JSON.stringify(site)" x-text="site.name"></option>
+            </template>
+          </select>
+        </template>
+        <template x-if="cloakerType === 'custom'">
+          <div class="grid grid-cols-1 gap-4 mb-4">
+            <input type="url" class="glass-effect border rounded-xl px-4 py-3 text-white font-medium" x-model="cloakerCustomUrl" placeholder="Site URL (https://example.com)" />
+            <input type="text" class="glass-effect border rounded-xl px-4 py-3 text-white font-medium" x-model="cloakerCustomTitle" placeholder="Custom Title" />
+            <input type="url" class="glass-effect border rounded-xl px-4 py-3 text-white font-medium" x-model="cloakerCustomIcon" placeholder="Favicon URL" />
+          </div>
+        </template>
+        <div class="flex flex-col md:flex-row gap-4">
+          <button class="enhanced-button bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 flex-1"
+            @click="applyCloaker">
+            <i class='bx bx-palette'></i>Apply Tab Cloaker
+          </button>
+          <button class="enhanced-button bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 flex-1"
+            @click="removeCloaker">
+            <i class='bx bx-eraser'></i>Remove Cloaker
+          </button>
+        </div>
+      </section>
+
+      <!-- Anti-Teacher Prevention Section -->
+      <section class="settings-section">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+            <i class='bx bx-shield-alt-2 text-white text-lg'></i>
+          </div>
+          <label class="text-xl font-bold text-white">Anti-Teacher Prevention</label>
+        </div>
+        <label class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300 mb-4" @click="antiTeacher = !antiTeacher">
+          <span class="font-medium text-lg">Enable Anti-Teacher Prevention</span>
+          <div class="relative">
+            <input type="checkbox" class="sr-only" :checked="antiTeacher">
+            <div class="w-12 h-7 rounded-full" :class="antiTeacher ? 'bg-orange-500' : 'bg-white/20'"></div>
+            <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform" :class="{ 'translate-x-5': antiTeacher }"></div>
+          </div>
+        </label>
+        <p class="text-white/60 mb-4 font-medium">Hides page elements and disables interactions when enabled</p>
+        <template x-if="antiTeacher">
+          <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/40 rounded-xl p-6">
+            <div class="flex items-center gap-3 mb-2">
+              <i class='bx bx-check-shield text-yellow-300 text-xl'></i>
+              <p class="font-bold text-yellow-200 text-lg">Anti-Teacher Mode Active</p>
+            </div>
+            <p class="text-yellow-200/80 font-medium">
+              Page elements will be hidden when teacher approaches.
+              Press <kbd class="bg-yellow-300/30 px-2 py-1 rounded-lg border border-yellow-500/30 text-yellow-200 font-bold" x-text="panicKey"></kbd> to toggle.
+            </p>
+          </div>
+        </template>
+      </section>
+
+      <!-- Additional Features Section -->
+      <section class="settings-section">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center">
+            <i class='bx bx-cog text-white text-lg'></i>
+          </div>
+          <label class="text-xl font-bold text-white">Additional Features</label>
+        </div>
+        <div class="grid grid-cols-1 gap-4">
+          <label class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300">
+            <div class="mr-4">
+              <span class="font-semibold text-lg text-white">Blur content when unfocused</span>
+              <p class="text-sm text-white/60 mt-1">Blurs the page content when the tab loses focus</p>
+            </div>
+            <div class="relative flex-shrink-0">
+              <input type="checkbox" class="sr-only" x-model="enableBlur">
+              <div class="w-12 h-7 rounded-full" :class="enableBlur ? 'bg-green-500' : 'bg-white/20'"></div>
+              <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform" :class="{ 'translate-x-5': enableBlur }"></div>
+            </div>
+          </label>
+          <label class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300">
+            <div class="mr-4">
+              <span class="font-semibold text-lg text-white">Sound alert on tab switch</span>
+              <p class="text-sm text-white/60 mt-1">Plays a sound when switching away from the tab</p>
+            </div>
+            <div class="relative flex-shrink-0">
+              <input type="checkbox" class="sr-only" x-model="enableSoundAlert">
+              <div class="w-12 h-7 rounded-full" :class="enableSoundAlert ? 'bg-green-500' : 'bg-white/20'"></div>
+              <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform" :class="{ 'translate-x-5': enableSoundAlert }"></div>
+            </div>
+          </label>
+          <label class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300">
+            <div class="mr-4">
+              <span class="font-semibold text-lg text-white">Auto-hide after inactivity</span>
+              <p class="text-sm text-white/60 mt-1">Automatically hides content after 5 minutes of inactivity</p>
+            </div>
+            <div class="relative flex-shrink-0">
+              <input type="checkbox" class="sr-only" x-model="enableAutoHide">
+              <div class="w-12 h-7 rounded-full" :class="enableAutoHide ? 'bg-green-500' : 'bg-white/20'"></div>
+              <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform" :class="{ 'translate-x-5': enableAutoHide }"></div>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Status Display Section -->
+      <section class="status-card rounded-2xl p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-indigo-400 flex items-center justify-center">
+            <i class='bx bx-info-circle text-white'></i>
+          </div>
+          <h3 class="font-bold text-xl text-white">Current Status</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+            <span class="text-white/70 font-medium">Open Mode:</span>
+            <span class="font-bold bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent" x-text="openMode"></span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+            <span class="text-white/70 font-medium">Panic Key:</span>
+            <span class="font-bold bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent" x-text="panicKey"></span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+            <span class="text-white/70 font-medium">Tab Cloaker:</span>
+            <span class="font-bold bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent" x-text="cloakerType === 'preset' ? JSON.parse(cloakerPreset).name : 'Custom'"></span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+            <span class="text-white/70 font-medium">Anti-Teacher:</span>
+            <span class="font-bold" :class="antiTeacher ? 'text-green-400' : 'text-red-400'" x-text="antiTeacher ? 'Enabled' : 'Disabled'"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Save Button & Status -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
+        <button type="button"
+          class="enhanced-button bg-gradient-to-r from-cyan-500 to-indigo-500 text-black px-8 py-4 rounded-xl font-bold shadow-lg flex items-center gap-2 text-lg w-full md:w-auto"
+          @click="saveSettings">
+          <i class='bx bx-save'></i>Save Settings
+        </button>
+        <div x-show="saveStatus" x-transition class="flex items-center gap-2">
+          <i class='bx bx-check-circle text-cyan-400'></i>
+          <span x-text="saveStatus" class="text-cyan-300 font-semibold"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden elements for anti-teacher mode -->
+    <div x-show="hideElements" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gradient-to-br from-[#0f0f23] to-[#1a1a2e] flex items-center justify-center z-50">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-32 w-32 border-4 border-cyan-400/20 border-t-cyan-400 mx-auto mb-8"></div>
+        <div class="space-y-2">
+          <p class="text-cyan-300 text-2xl font-bold">Loading...</p>
+          <p class="text-cyan-300/60 text-lg">Please wait while we load your content</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function settingsPage() {
+      return {
+        // Data
+        openMode: Alpine.persist('about:blank'),
+        alwaysOpenBlank: Alpine.persist(false),
+        alwaysOpenBlob: Alpine.persist(false),
+        panicKeyType: Alpine.persist('preset'),
+        panicKey: Alpine.persist('A'),
+        presetKeys: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+        cloakerType: Alpine.persist('preset'),
+        presetSites: [
+          { name: 'Google', url: 'https://google.com', icon: 'https://google.com/favicon.ico' },
+          { name: 'Canvas', url: 'https://canvas.instructure.com', icon: 'https://canvas.instructure.com/favicon.ico' },
+          { name: 'Schoology', url: 'https://schoology.com', icon: 'https://schoology.com/favicon.ico' },
+        ],
+        cloakerPreset: Alpine.persist(JSON.stringify({ name: 'Google', url: 'https://google.com', icon: 'https://google.com/favicon.ico' })),
+        cloakerCustomUrl: Alpine.persist(''),
+        cloakerCustomTitle: Alpine.persist(''),
+        cloakerCustomIcon: Alpine.persist(''),
+        antiTeacher: Alpine.persist(false),
+        hideElements: false,
+        enableBlur: Alpine.persist(false),
+        enableSoundAlert: Alpine.persist(false),
+        enableAutoHide: Alpine.persist(false),
+        saveStatus: '',
+
+        // Methods
+        init() {
+          console.log('Settings page initialized');
+        },
+        setOpenMode(mode) {
+          this.openMode = mode;
+        },
+        testOpenMode() {
+          alert(`Testing open mode: ${this.openMode}`);
+        },
+        testPanicKey() {
+          alert(`Panic key is set to: ${this.panicKey}`);
+        },
+        applyCloaker() {
+          alert('Applying tab cloaker...');
+        },
+        removeCloaker() {
+          alert('Removing tab cloaker...');
+        },
+        saveSettings() {
+          this.saveStatus = 'Settings saved successfully!';
+          setTimeout(() => this.saveStatus = '', 3000);
+        },
+        handleKeyPress(e) {
+          if (this.antiTeacher && e.key.toUpperCase() === this.panicKey.toUpperCase()) {
+            this.hideElements = !this.hideElements;
+          }
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>

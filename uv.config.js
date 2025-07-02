@@ -3,11 +3,12 @@ self.__uv$config = {
   encodeUrl: Ultraviolet.codec.plain.encode,
   decodeUrl: Ultraviolet.codec.plain.decode,
   handler:
-    "https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet/dist/uv.handler.js",
+    "/dist/uv.handler.js",
   client:
-    "https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet/dist/uv.client.js",
+    "/dist/uv.client.js",
   bundle:
-    "https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet/dist/uv.bundle.js",
+    "/dist/uv.bundle.js",
   config: "/uv.config.js",
-  sw: "https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet/dist/uv.sw.js",
+  sw: "/dist/uv.sw.js",
 }
+

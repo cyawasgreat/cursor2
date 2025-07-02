@@ -123,7 +123,7 @@ export function getWisp() {
 export async function setProxy(proxy) {
   console.log(`lethal.js: Setting proxy backend to ${proxy}`)
   if (proxy === "uv") {
-    await import("https://cdn.jsdelivr.net/gh/Coding4Hours/cdn/uv/uv.bundle.js")
+    await import("/uv/uv.bundle.js")
 
     await import("./uv.config.js")
   } else {
@@ -143,3 +143,4 @@ export async function getProxied(input) {
 
   return __uv$config.prefix + __uv$config.encodeUrl(url)
 }
+
