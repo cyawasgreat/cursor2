@@ -1,6 +1,6 @@
 importScripts("https://brominecdn.netlify.app/uv/uv.bundle.js")
 importScripts("uv.config.js")
-importScripts(__uv$config.sw)
+importScripts("https://brominecdn.netlify.app/uv/uv.sw.js")
 importScripts("/scram/scramjet.shared.js", "/scram/scramjet.worker.js")
 
 if (navigator.userAgent.includes("Firefox")) {
