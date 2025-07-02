@@ -1,7 +1,7 @@
 importScripts("https://brominecdn.netlify.app/uv/uv.bundle.js")
 importScripts("uv.config.js")
-importScripts("dist/uv.sw.js")
-// importScripts("/scram/scramjet.shared.js", "/scram/scramjet.worker.js")
+importScripts(__uv$config.sw)
+importScripts("/scram/scramjet.shared.js", "/scram/scramjet.worker.js")
 
 if (navigator.userAgent.includes("Firefox")) {
   Object.defineProperty(globalThis, "crossOriginIsolated", {
@@ -18,10 +18,10 @@ self.addEventListener("install", () => {
 })
 
 async function handleRequest(event) {
-  // await scramjet.loadConfig()
-  //
-  // if (scramjet.route(event)) return scramjet.fetch(event)
-  //
+  await scramjet.loadConfig()
+
+  if (scramjet.route(event)) return scramjet.fetch(event)
+
   if (uv.route(event)) return await uv.fetch(event)
 
   return await fetch(event.request)
