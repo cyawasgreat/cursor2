@@ -1,4 +1,4 @@
-importScripts("https://brominecdn.netlify.app/uv/uv.bundle.js");
+importScripts("https://cdn.jsdelivr.net/gh/Bromine-Labs/cdn/uv/uv.bundle.js");
 importScripts("uv.config.js");
 importScripts(__uv$config.sw);
 importScripts("/scram/scramjet.shared.js", "/scram/scramjet.worker.js");
