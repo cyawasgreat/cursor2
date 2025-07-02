@@ -2,7 +2,7 @@ const hamburger = document.getElementById("hamburger");
 const mobileMenu = document.getElementById("mobileMenu");
 const overlay = document.getElementById("overlay");
 
-function toggleMenu() {
+const toggleMenu = () => {
   const isActive = hamburger.classList.toggle("active");
   if (isActive) {
     hamburger.children[0].style.transform = "rotate(45deg) translateY(9px)";
@@ -19,9 +19,9 @@ function toggleMenu() {
     overlay.classList.remove("opacity-100", "visible");
     overlay.classList.add("opacity-0", "invisible");
   }
-}
+};
 
-function closeMenu() {
+const cM = () => {
   if (hamburger.classList.contains("active")) {
     hamburger.classList.remove("active");
     hamburger.children[0].style.transform = "";
@@ -31,7 +31,7 @@ function closeMenu() {
     overlay.classList.remove("opacity-100", "visible");
     overlay.classList.add("opacity-0", "invisible");
   }
-}
+};
 
 if (hamburger && mobileMenu && overlay) {
   hamburger.addEventListener("click", toggleMenu);

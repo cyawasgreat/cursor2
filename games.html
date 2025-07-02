@@ -14,17 +14,14 @@
       rel="stylesheet"
     />
     <script
-      defer
       async
       src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
     ></script>
     <script
-      defer
       async
       src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
     ></script>
     <script
-      defer
       async
       src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
     ></script>
@@ -40,7 +37,7 @@
       }
       @keyframes spin {
         0% {
-          transform: rotate(0deg);
+          transform: rotate(0);
         }
         100% {
           transform: rotate(360deg);
@@ -125,7 +122,6 @@
     <div
       class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]"
       id="overlay"
-      onclick="toggleMenu()"
     ></div>
 
     <div
@@ -213,10 +209,10 @@
         setTransport,
         setWisp,
       } from "/lethal.mjs";
-      let proxyOption = localStorage.getItem("proxy-backend") || "uv";
-      async function ensureProxyReady() {
-        if (!getProxy() || getProxy() !== proxyOption)
-          await setProxy(proxyOption);
+      let currentProxy = localStorage.getItem("proxy-backend") || "uv";
+      async function init() {
+        if (!getProxy() || getProxy() !== currentProxy)
+          await setProxy(currentProxy);
         let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
         let transport = localStorage.getItem("proxy-transport");
         if (wisp) await setWisp(wisp);
@@ -225,44 +221,44 @@
           await setTransport("libcurl");
         else await setTransport("epoxy");
       }
-      function updateProxyToggleUI(proxy) {
-        const proxyToggleBtn = document.getElementById("proxyToggleBtn");
-        const proxyToggleIcon = document.getElementById("proxyToggleIcon");
-        if (!proxyToggleBtn || !proxyToggleIcon) return;
+      function syncUi(proxy) {
+        const proxyBtn = document.getElementById("proxyToggleBtn");
+        const proxyIcon = document.getElementById("proxyToggleIcon");
+        if (!proxyBtn || !proxyToggleIcon) return;
         if (proxy === "scram") {
-          proxyToggleBtn.classList.remove("border-cyan-400");
-          proxyToggleBtn.classList.add("border-gold", "bg-gold/20");
-          proxyToggleIcon.className = "bx bx-network-chart text-xl";
-          proxyToggleBtn.title = "Scramjet";
+          proxyBtn.classList.remove("border-cyan-400");
+          proxyBtn.classList.add("border-gold", "bg-gold/20");
+          proxyIcon.className = "bx bx-network-chart text-xl";
+          proxyBtn.title = "Scramjet";
         } else {
-          proxyToggleBtn.classList.remove("border-gold", "bg-gold/20");
-          proxyToggleBtn.classList.add("border-cyan-400");
-          proxyToggleIcon.className = "bx bx-cloud text-xl";
-          proxyToggleBtn.title = "UV";
+          proxyBtn.classList.remove("border-gold", "bg-gold/20");
+          proxyBtn.classList.add("border-cyan-400");
+          proxyIcon.className = "bx bx-cloud text-xl";
+          proxyBtn.title = "UV";
         }
       }
       document.addEventListener("DOMContentLoaded", function () {
-        setTimeout(() => updateProxyToggleUI(proxyOption), 200);
-      });
-      document.addEventListener("DOMContentLoaded", function () {
-        const btn = document.getElementById("proxyToggleBtn");
+        setTimeout(() => syncUi(currentProxy), 200);
+        const btn = document.getElementById("proxyBtn");
         if (btn) {
           btn.addEventListener("click", async () => {
-            proxyOption = getProxy() === "scram" ? "uv" : "scram";
-            localStorage.setItem("proxy-backend", proxyOption);
+            currentProxy = getProxy() === "scram" ? "uv" : "scram";
+            localStorage.setItem("proxy-backend", currentProxy);
             await ensureProxyReady();
-            updateProxyToggleUI(proxyOption);
+            syncUi(currentProxy);
             if (
               !document
                 .getElementById("gameFrameContainer")
                 .classList.contains("hidden")
             ) {
-              loadProxiedGameIframe();
+              loadProxame();
             }
           });
         }
       });
-      async function loadProxiedGameIframe() {
+
+      // shut up i know its a short name
+      async function loadProxame() {
         await ensureProxyReady();
         let gamesData = window.gamesData || [];
         let currentGameId = window.currentGameId;
@@ -273,9 +269,9 @@
         const proxied = await getProxied(currentGame.url);
         document.getElementById("gameFrameEmbed").src = proxied;
       }
-      window.loadProxiedGameIframe = loadProxiedGameIframe;
+      window.loadProxame = loadProxiedGameIframe;
       window.ensureProxyReady = ensureProxyReady;
-      window.updateProxyToggleUI = updateProxyToggleUI;
+      window.syncUi = syncUi;
     </script>
 
     <script defer>
@@ -327,7 +323,7 @@
         window.tagCounts = tagCounts;
       }
 
-      function getGameIdFromURL() {
+      function getGameIdFromakeURLRL() {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get("id");
       }
@@ -692,7 +688,7 @@
             return;
           }
           await loadGamesData();
-          currentGameId = getGameIdFromURL();
+          currentGameId = getGameIdFromakeURLRL();
           window.currentGameId = currentGameId;
           currentGame = gamesData.find(
             (g) => g.id == currentGameId || String(g.id) == currentGameId,
@@ -788,8 +784,8 @@
                 <button id="dislikeBtn" class="w-10 h-10 bg-white/10 hover:bg-red-500/80 text-white rounded-full flex items-center justify-center transition" title="Dislike">
                   <i class='bx bx-dislike text-xl'></i>
                 </button>
-                <button id="proxyToggleBtn" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center transition border-2 border-cyan-400" title="Toggle Proxy">
-                  <i id="proxyToggleIcon" class="bx bx-cloud text-xl"></i>
+                <button id="proxyBtn" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center transition border-2 border-cyan-400" title="Toggle Proxy">
+                  <i id="proxyIcon" class="bx bx-cloud text-xl"></i>
                 </button>
                 <button id="shareBtn" class="w-10 h-10 bg-white/10 hover:bg-indigo-500/80 text-white rounded-full flex items-center justify-center transition" title="Share">
                   <i class='bx bx-share-alt text-xl'></i>
@@ -839,7 +835,7 @@
               </div>
             </div>
           `;
-            await window.loadProxiedGameIframe();
+            await window.loadProxame();
             document.getElementById("gameFrameEmbed").onload = hidePreloader;
             document.getElementById("gameTitleDisplayFrame").textContent =
               currentGame.title || "";

@@ -72,7 +72,6 @@
     <div
       class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]"
       id="overlay"
-      onclick="toggleMenu()"
     ></div>
 
     <div
@@ -118,7 +117,7 @@
         >
           <div
             class="logo relative w-[120px] h-[120px] cursor-pointer transition-transform duration-300 hover:scale-110 hover:rotate-3 flex items-center justify-center"
-            onclick="createParticles(event)"
+            id="logo-main"
           >
             <div
               class="logo-ring logo-ring-1 absolute border-8 rounded-full"
@@ -156,5 +155,14 @@
         </div>
       </div>
     </main>
+    <script>
+      // Minimal ES6+ event delegation for inlined handlers
+      const overlay = document.getElementById("overlay");
+      if (overlay)
+        overlay.addEventListener("click", () => window.toggleMenu?.());
+      const logo = document.getElementById("logo-main");
+      if (logo)
+        logo.addEventListener("click", (e) => window.createParticles?.(e));
+    </script>
   </body>
 </html>

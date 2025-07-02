@@ -405,7 +405,7 @@
           await setTransport("libcurl");
         else await setTransport("epoxy");
       }
-      function updateProxyToggleUI(proxy) {
+      function syncUi(proxy) {
         const proxyToggleBtn = document.getElementById("proxyToggleBtn");
         const proxyToggleIcon = document.getElementById("proxyToggleIcon");
         if (!proxyToggleBtn || !proxyToggleIcon) return;
@@ -503,7 +503,7 @@
         window.tagCounts = tagCounts;
       }
 
-      function getGameIdFromURL() {
+      function getGameIdFromakeURLRL() {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get("id");
       }
@@ -819,7 +819,7 @@
             return;
           }
           await loadGamesData();
-          currentGameId = getGameIdFromURL();
+          currentGameId = getGameIdFromakeURLRL();
           window.currentGameId = currentGameId;
           currentGame = gamesData.find(
             (g) => g.id == currentGameId || String(g.id) == currentGameId,

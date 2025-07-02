@@ -17,7 +17,7 @@ self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
-async function handleRequest(event) {
+const handleReq = async (e) => {
   await scramjet.loadConfig();
 
   if (scramjet.route(event)) return scramjet.fetch(event);
@@ -25,8 +25,6 @@ async function handleRequest(event) {
   if (uv.route(event)) return await uv.fetch(event);
 
   return await fetch(event.request);
-}
+};
 
-self.addEventListener("fetch", (event) => {
-  event.respondWith(handleRequest(event));
-});
+self.addEventListener("fetch", (e) => e.respondWith(handleReq(e)));

@@ -72,10 +72,10 @@ console.log("lethal.js: Service Worker registered");
 //////////////////////////////
 ///        Functions       ///
 //////////////////////////////
-export function makeURL(
+export const makeURL = (
   input,
   template = "https://search.brave.com/search?q=%s",
-) {
+) => {
   try {
     return new URL(input).toString();
   } catch (err) {}
@@ -84,7 +84,7 @@ export function makeURL(
   if (url.hostname.includes(".")) return url.toString();
 
   return template.replace("%s", encodeURIComponent(input));
-}
+};
 
 async function updateBareMux() {
   if (transportURL != null && wispURL != null) {
@@ -120,7 +120,7 @@ export function getWisp() {
   return wispURL;
 }
 
-export async function setProxy(proxy) {
+export const setProxy = async (p) => {
   console.log(`lethal.js: Setting proxy backend to ${proxy}`);
   if (proxy === "uv") {
     await import("/uv/uv.bundle.js");
@@ -130,7 +130,7 @@ export async function setProxy(proxy) {
     import("/scram/scramjet.worker.js");
   }
   proxyOption = proxy;
-}
+};
 
 export function getProxy() {
   return proxyOption;

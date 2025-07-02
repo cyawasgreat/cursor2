@@ -1,4 +1,4 @@
-self.__uv$config = {
+self.uC = {
   prefix: "/uv/",
   encodeUrl: Ultraviolet.codec.plain.encode,
   decodeUrl: Ultraviolet.codec.plain.decode,

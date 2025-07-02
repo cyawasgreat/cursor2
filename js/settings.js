@@ -1,4 +1,4 @@
-const defaultSettings = {
+const dftS = {
   openMode: "about:blank",
   alwaysOpenBlank: false,
   alwaysOpenBlob: false,
@@ -38,7 +38,7 @@ const defaultSettings = {
   enableAutoHide: false,
 };
 
-const loadSettings = () => {
+const ldS = () => {
   const s = localStorage.getItem("carbonSettings");
   if (!s) return { ...defaultSettings };
   try {
@@ -51,9 +51,9 @@ const loadSettings = () => {
 const saveSettings = (s) =>
   localStorage.setItem("carbonSettings", JSON.stringify(s));
 
-let settings = loadSettings();
+let s = ldS();
 
-const updateUI = () => {
+const syncUI = () => {
   const setBtnState = (id, active) => {
     const btn = document.getElementById(id);
     btn.classList.toggle("bg-gradient-to-r", active);
@@ -179,27 +179,27 @@ const updateUI = () => {
     : "";
 };
 
-const autoSaveAndUpdate = () => {
-  updateUI();
+const asu = () => {
+  syncUi();
   saveSettings(settings);
 };
 
-const attachEvents = () => {
+const aeh = () => {
   document.getElementById("openModeBlankBtn").onclick = () => {
     settings.openMode = "about:blank";
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("openModeBlobBtn").onclick = () => {
     settings.openMode = "blob";
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("alwaysOpenBlank").onchange = (e) => {
     settings.alwaysOpenBlank = e.target.checked;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("alwaysOpenBlob").onchange = (e) => {
     settings.alwaysOpenBlob = e.target.checked;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("testOpenModeBtn").onclick = () => {
     alert(`Testing open mode: ${settings.openMode}`);
@@ -207,38 +207,38 @@ const attachEvents = () => {
   document.getElementById("panicKeyType").onchange = (e) => {
     settings.panicKeyType = e.target.value;
     if (settings.panicKeyType === "preset") settings.panicKey = "A";
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("panicKeyPreset").onchange = (e) => {
     settings.panicKey = e.target.value;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("panicKeyCustom").oninput = (e) => {
     settings.panicKey = e.target.value.toUpperCase().slice(0, 1);
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("testPanicKeyBtn").onclick = () => {
     alert(`Panic key is set to: ${settings.panicKey}`);
   };
   document.getElementById("cloakerType").onchange = (e) => {
     settings.cloakerType = e.target.value;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("cloakerPreset").onchange = (e) => {
     settings.cloakerPreset = e.target.value;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("cloakerCustomUrl").oninput = (e) => {
     settings.cloakerCustomUrl = e.target.value;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("cloakerCustomTitle").oninput = (e) => {
     settings.cloakerCustomTitle = e.target.value;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("cloakerCustomIcon").oninput = (e) => {
     settings.cloakerCustomIcon = e.target.value;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("applyCloakerBtn").onclick = () => {
     alert("Applying tab cloaker...");
@@ -248,19 +248,19 @@ const attachEvents = () => {
   };
   document.getElementById("antiTeacher").onchange = (e) => {
     settings.antiTeacher = e.target.checked;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("enableBlur").onchange = (e) => {
     settings.enableBlur = e.target.checked;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("enableSoundAlert").onchange = (e) => {
     settings.enableSoundAlert = e.target.checked;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("enableAutoHide").onchange = (e) => {
     settings.enableAutoHide = e.target.checked;
-    autoSaveAndUpdate();
+    autoSaveAndSync();
   };
   document.getElementById("saveSettingsBtn").onclick = () => {
     saveSettings(settings);
@@ -278,10 +278,10 @@ const attachEvents = () => {
       e.key.toUpperCase() === settings.panicKey.toUpperCase()
     ) {
       settings.hideElements = !settings.hideElements;
-      autoSaveAndUpdate();
+      autoSaveAndSync();
     }
   });
 };
 
-  updateUI();
-  attachEvents();
+syncUi();
+attachEventHandlers();
