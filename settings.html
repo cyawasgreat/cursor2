@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CARBON - Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script defer async src="js/settings.js"></script>
+    <script defer async src="/js/hamburger.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body
+    class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative font-[Inter]"
+    id="settingsBody"
+  >
+    <nav
+      class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-8 py-4 bg-[#0f0f23cc] border-b border-white/10 backdrop-blur-md animate-[slideDown_0.5s_ease-out]"
+    >
+      <div
+        class="navbar-brand text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent tracking-tighter select-none"
+      >
+        CARBON
+      </div>
+      <div
+        class="hamburger flex flex-col gap-1.5 cursor-pointer p-2 transition-transform duration-300"
+        id="hamburger"
+      >
+        <span
+          class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"
+        ></span>
+        <span
+          class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"
+        ></span>
+        <span
+          class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"
+        ></span>
+      </div>
+    </nav>
+
+    <aside
+      class="fixed top-0 right-[-100%] w-72 h-full bg-[#0f0f23f2] backdrop-blur-md border-l border-white/10 pt-24 px-8 z-[999] transition-all duration-300"
+      id="mobileMenu"
+    >
+      <a
+        href="/"
+        class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4"
+        >Home</a
+      >
+      <a
+        href="/games.html"
+        class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4"
+        >Games</a
+      >
+      <a
+        href="/proxy.html"
+        class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4"
+        >Proxy</a
+      >
+      <a
+        href="/settings.html"
+        class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4"
+        >Settings</a
+      >
+    </aside>
+    <div
+      class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]"
+      id="overlay"
+      onclick="toggleMenu()"
+    ></div>
+
+    <main
+      class="flex items-center justify-center pt-32 pb-20 min-h-screen px-4"
+    >
+      <div
+        class="settings-card rounded-3xl shadow-2xl p-8 md:p-10 w-full max-w-4xl space-y-8 animate-[fadeInUp_1s_ease-out] relative overflow-hidden"
+      >
+        <div
+          class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-400/10 to-indigo-500/10 rounded-full blur-2xl"
+        ></div>
+        <div
+          class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/10 to-cyan-400/10 rounded-full blur-2xl"
+        ></div>
+
+        <div class="relative z-10">
+          <h1
+            class="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tighter drop-shadow-sm"
+          >
+            Settings
+          </h1>
+          <p class="text-lg text-white/70 font-medium mb-8">
+            Customize your CARBON experience
+          </p>
+        </div>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-500 flex items-center justify-center"
+            >
+              <i class="bx bx-window-open text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white">Open Mode</label>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <button
+              type="button"
+              id="openModeBlankBtn"
+              class="enhanced-button px-6 py-4 rounded-xl transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-2"
+            >
+              <i class="bx bx-tab"></i>
+              About:blank
+            </button>
+            <button
+              type="button"
+              id="openModeBlobBtn"
+              class="enhanced-button px-6 py-4 rounded-xl transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-2"
+            >
+              <i class="bx bx-data"></i>
+              Blob
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-3 rounded-lg hover:bg-white/5 transition-all duration-300"
+            >
+              <span class="font-medium">Always open in about:blank</span>
+              <div class="relative">
+                <input type="checkbox" class="sr-only" id="alwaysOpenBlank" />
+                <div class="w-12 h-7 rounded-full" id="alwaysOpenBlankBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="alwaysOpenBlankKnob"
+                ></div>
+              </div>
+            </label>
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-3 rounded-lg hover:bg-white/5 transition-all duration-300"
+            >
+              <span class="font-medium">Always open in blob</span>
+              <div class="relative">
+                <input type="checkbox" class="sr-only" id="alwaysOpenBlob" />
+                <div class="w-12 h-7 rounded-full" id="alwaysOpenBlobBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="alwaysOpenBlobKnob"
+                ></div>
+              </div>
+            </label>
+          </div>
+          <button
+            class="enhanced-button bg-gradient-to-r from-cyan-500 to-indigo-500 text-black px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2"
+            id="testOpenModeBtn"
+          >
+            <i class="bx bx-play-circle"></i>Test Current Open Mode
+          </button>
+        </section>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center"
+            >
+              <i class="bx bx-error-alt text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white">Panic Key</label>
+          </div>
+          <div
+            class="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4"
+          >
+            <select
+              class="glass-effect border rounded-xl px-4 py-3 text-white font-medium min-w-[120px] bg-gray-800"
+              id="panicKeyType"
+            >
+              <option value="preset">A-Z Keys</option>
+              <option value="custom">Custom Key</option>
+            </select>
+            <select
+              class="glass-effect border rounded-xl px-4 py-3 text-white font-medium min-w-[80px] bg-gray-800"
+              id="panicKeyPreset"
+            ></select>
+            <input
+              type="text"
+              maxlength="1"
+              class="glass-effect border rounded-xl px-4 py-3 w-20 text-center text-white font-medium bg-gray-800"
+              id="panicKeyCustom"
+              placeholder="Key"
+              style="display: none"
+            />
+          </div>
+          <div
+            class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-4"
+          >
+            <p class="text-yellow-200 font-medium flex items-center gap-2">
+              <i class="bx bx-info-circle"></i>
+              Press
+              <kbd
+                class="bg-yellow-500/20 px-2 py-1 rounded-lg border border-yellow-500/40 font-bold"
+                id="panicKeyDisplay"
+              ></kbd>
+              to activate panic mode
+            </p>
+          </div>
+          <button
+            class="enhanced-button bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2"
+            id="testPanicKeyBtn"
+          >
+            <i class="bx bx-zap"></i>Test Panic Key
+          </button>
+        </section>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center"
+            >
+              <i class="bx bx-mask text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white">Tab Cloaker</label>
+          </div>
+          <div class="mb-4">
+            <select
+              class="glass-effect border rounded-xl px-4 py-3 w-full md:w-auto text-white font-medium bg-gray-800"
+              id="cloakerType"
+            >
+              <option value="preset">Pre-selected site</option>
+              <option value="custom">Custom site</option>
+            </select>
+          </div>
+          <select
+            class="glass-effect border rounded-xl px-4 py-3 w-full mb-4 text-white font-medium bg-gray-800"
+            id="cloakerPreset"
+          ></select>
+          <div
+            class="grid grid-cols-1 gap-4 mb-4"
+            id="cloakerCustomFields"
+            style="display: none"
+          >
+            <input
+              type="url"
+              class="glass-effect border rounded-xl px-4 py-3 text-white font-medium bg-gray-800"
+              id="cloakerCustomakeURLrl"
+              placeholder="Site URL (https://example.com)"
+            />
+            <input
+              type="text"
+              class="glass-effect border rounded-xl px-4 py-3 text-white font-medium bg-gray-800"
+              id="cloakerCustomTitle"
+              placeholder="Custom Title"
+            />
+            <input
+              type="url"
+              class="glass-effect border rounded-xl px-4 py-3 text-white font-medium bg-gray-800"
+              id="cloakerCustomIcon"
+              placeholder="Favicon URL"
+            />
+          </div>
+          <div class="flex flex-col md:flex-row gap-4">
+            <button
+              class="enhanced-button bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 flex-1"
+              id="applyCloakerBtn"
+            >
+              <i class="bx bx-palette"></i>Apply Tab Cloaker
+            </button>
+            <button
+              class="enhanced-button bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 flex-1"
+              id="removeCloakerBtn"
+            >
+              <i class="bx bx-eraser"></i>Remove Cloaker
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center"
+            >
+              <i class="bx bx-shield-alt-2 text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white"
+              >Anti-Teacher Prevention</label
+            >
+          </div>
+          <label
+            class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300 mb-4"
+          >
+            <span class="font-medium text-lg"
+              >Enable Anti-Teacher Prevention</span
+            >
+            <div class="relative">
+              <input type="checkbox" class="sr-only" id="antiTeacher" />
+              <div class="w-12 h-7 rounded-full" id="antiTeacherBg"></div>
+              <div
+                class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                id="antiTeacherKnob"
+              ></div>
+            </div>
+          </label>
+          <p class="text-white/60 mb-4 font-medium">
+            Hides page elements and disables interactions when enabled
+          </p>
+          <div
+            class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/40 rounded-xl p-6"
+            id="antiTeacherActive"
+            style="display: none"
+          >
+            <div class="flex items-center gap-3 mb-2">
+              <i class="bx bx-check-shield text-yellow-300 text-xl"></i>
+              <p class="font-bold text-yellow-200 text-lg">
+                Anti-Teacher Mode Active
+              </p>
+            </div>
+            <p class="text-yellow-200/80 font-medium">
+              Page elements will be hidden when teacher approaches. Press
+              <kbd
+                class="bg-yellow-300/30 px-2 py-1 rounded-lg border border-yellow-500/30 text-yellow-200 font-bold"
+                id="panicKeyDisplay2"
+              ></kbd>
+              to toggle.
+            </p>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center"
+            >
+              <i class="bx bx-cog text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white"
+              >Additional Features</label
+            >
+          </div>
+          <div class="grid grid-cols-1 gap-4">
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white"
+                  >Blur content when unfocused</span
+                >
+                <p class="text-sm text-white/60 mt-1">
+                  Blurs the page content when the tab loses focus
+                </p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="enableBlur" />
+                <div class="w-12 h-7 rounded-full" id="enableBlurBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="enableBlurKnob"
+                ></div>
+              </div>
+            </label>
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white"
+                  >Sound alert on tab switch</span
+                >
+                <p class="text-sm text-white/60 mt-1">
+                  Plays a sound when switching away from the tab
+                </p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="enableSoundAlert" />
+                <div
+                  class="w-12 h-7 rounded-full"
+                  id="enableSoundAlertBg"
+                ></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="enableSoundAlertKnob"
+                ></div>
+              </div>
+            </label>
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white"
+                  >Auto-hide after inactivity</span
+                >
+                <p class="text-sm text-white/60 mt-1">
+                  Automatically hides content after 5 minutes of inactivity
+                </p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="enableAutoHide" />
+                <div class="w-12 h-7 rounded-full" id="enableAutoHideBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="enableAutoHideKnob"
+                ></div>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section class="status-card rounded-2xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-indigo-400 flex items-center justify-center"
+            >
+              <i class="bx bx-info-circle text-white"></i>
+            </div>
+            <h3 class="font-bold text-xl text-white">Current Status</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div
+              class="flex justify-between items-center p-3 bg-white/5 rounded-lg"
+            >
+              <span class="text-white/70 font-medium">Open Mode:</span>
+              <span
+                class="font-bold bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent"
+                id="statusOpenMode"
+              ></span>
+            </div>
+            <div
+              class="flex justify-between items-center p-3 bg-white/5 rounded-lg"
+            >
+              <span class="text-white/70 font-medium">Panic Key:</span>
+              <span
+                class="font-bold bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent"
+                id="statusPanicKey"
+              ></span>
+            </div>
+            <div
+              class="flex justify-between items-center p-3 bg-white/5 rounded-lg"
+            >
+              <span class="text-white/70 font-medium">Tab Cloaker:</span>
+              <span
+                class="font-bold bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent"
+                id="statusCloaker"
+              ></span>
+            </div>
+            <div
+              class="flex justify-between items-center p-3 bg-white/5 rounded-lg"
+            >
+              <span class="text-white/70 font-medium">Anti-Teacher:</span>
+              <span class="font-bold" id="statusAntiTeacher"></span>
+            </div>
+          </div>
+        </section>
+
+        <div
+          class="flex flex-col md:flex-row items-center justify-between gap-4 pt-4"
+        ></div>
+      </div>
+
+      <div
+        class="fixed inset-0 bg-gradient-to-br from-[#0f0f23] to-[#1a1a2e] flex items-center justify-center z-50"
+        id="hideElementsOverlay"
+        style="display: none"
+      >
+        <div class="text-center">
+          <div
+            class="animate-spin rounded-full h-32 w-32 border-4 border-cyan-400/20 border-t-cyan-400 mx-auto mb-8"
+          ></div>
+          <div class="space-y-2">
+            <p class="text-cyan-300 text-2xl font-bold">Loading...</p>
+            <p class="text-cyan-300/60 text-lg">
+              Please wait while we load your content
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

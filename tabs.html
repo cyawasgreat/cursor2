@@ -1,0 +1,1885 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CARBON</title>
+    <script defer async>
+      function setConfig() {
+        tailwind.config = {
+          theme: {
+            extend: {
+              fontFamily: {
+                display: ["Switzer", "Helvetica", "sans-serif"],
+                inter: ["Inter", "sans-serif"],
+              },
+              colors: {
+                base: "#191724",
+                surface: "#1f1d2e",
+                overlay: "#26233a",
+                muted: "#6e6a86",
+                subtle: "#908caa",
+                text: "#e0def4",
+                love: "#eb6f92",
+                gold: "#f6c177",
+                rose: "#ebbcba",
+                pine: "#31748f",
+                foam: "#9ccfd8",
+                iris: "#c4a7e7",
+                "highlight-low": "#21202e",
+                "highlight-med": "#403d52",
+                "highlight-high": "#524f67",
+              },
+            },
+          },
+        };
+      }
+    </script>
+
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" />
+    <script
+      defer
+      async
+      src="https://cdn.tailwindcss.com"
+      onload="setConfig()"
+    ></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <style>
+      .suggestion-box {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        z-index: 1200;
+        background: #1f1d2e; /* surface */
+        border-radius: 0 0 0.75rem 0.75rem;
+        border: 1px solid #26233a; /* overlay */
+        border-top: none;
+        max-height: 220px;
+        overflow-y: auto;
+        box-shadow: 0 6px 20px 2px #000a;
+        color: #e0def4; /* text */
+        font-size: 1rem;
+        width: 100%;
+      }
+      .suggestion-item {
+        padding: 0.73rem 1.1rem;
+        cursor: pointer;
+        transition: background 0.16s;
+        border-bottom: 1px solid #26233a; /* overlay */
+      }
+      .suggestion-item:last-child {
+        border-bottom: none;
+      }
+      .suggestion-item:hover,
+      .suggestion-item.active {
+        background: #26233a; /* overlay */
+        color: #9ccfd8; /* foam */
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .dropdown-list {
+        min-width: 160px;
+      }
+      .dropdown-list button {
+        font-size: 1rem;
+      }
+
+      /* Browser-style vertical tabs */
+      .vertical-tabs-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 280px;
+        background: #1f1d2e;
+        border-right: 1px solid #26233a;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+      }
+
+      .vertical-tabs-container.open {
+        transform: translateX(0);
+      }
+
+      .content-with-vertical-tabs {
+        margin-left: 280px;
+        transition: margin-left 0.3s ease;
+      }
+
+      .content-with-vertical-tabs.collapsed {
+        margin-left: 0;
+      }
+
+      /* Browser-style scrollbar */
+      #vertical-tabs-list::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      #vertical-tabs-list::-webkit-scrollbar-track {
+        background: #21202e;
+      }
+
+      #vertical-tabs-list::-webkit-scrollbar-thumb {
+        background: #403d52;
+        border-radius: 3px;
+      }
+
+      #vertical-tabs-list::-webkit-scrollbar-thumb:hover {
+        background: #524f67;
+      }
+    </style>
+    <script type="module" defer>
+      // --- Inlined for performance lol ---
+      import {
+        makeURL,
+        getProxied,
+        setProxy,
+        setTransport,
+        setWisp,
+      } from "/lethal.mjs";
+      // --- END LETHAL IMPORTS ---
+
+      const engines = {
+        "https://search.brave.com/search?q=%s": ["Brave", "bxl-brave"],
+        "https://duckduckgo.com/?q=%s": ["DuckDuckGo", "bxl-duckduckgo"],
+        "https://www.google.com/search?q=%s": ["Google", "bxl-google"],
+        "https://www.bing.com/search?q=%s": ["Bing", "bxl-microsoft"],
+        "https://search.yahoo.com/search?p=%s": ["Yahoo", "bxl-yahoo"],
+        "https://www.ecosia.org/search?q=%s": ["Ecosia", "bxl-leaf"],
+      };
+
+      // --- Search Engine Dropdown as Boxicon Button ---
+      const wispBtn = document.getElementById("wisp-btn");
+      const searchEngineBtn = document.getElementById("search-engine-btn");
+      const searchEngineIcon = document.getElementById("search-engine-icon");
+      const searchEngineDropdown = document.getElementById(
+        "search-engine-dropdown",
+      );
+      function getCurrentSearchEngine() {
+        return (
+          localStorage.getItem("search-engine") ||
+          "https://search.brave.com/search?q=%s"
+        );
+      }
+      function setCurrentSearchEngine(url) {
+        localStorage.setItem("search-engine", url);
+        updateSearchEngineDisplay();
+      }
+      function updateSearchEngineDisplay() {
+        const current = getCurrentSearchEngine();
+        const [name, icon] = engines[current] || ["Brave", "bxl-brave"];
+        searchEngineIcon.className = `bx ${icon} text-2xl`;
+        searchEngineBtn.title = name;
+      }
+      searchEngineBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        searchEngineDropdown.classList.toggle("hidden");
+      });
+      wispBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const wispServer =
+          localStorage.getItem("wisp-server") || "wss://anura.pro/";
+        const newWisp = prompt("Enter Wisp server URL:", wispServer);
+        if (newWisp) {
+          setWisp(newWisp);
+          localStorage.setItem("wisp-server", newWisp);
+          alert(`Wisp server set to: ${newWisp}`);
+        }
+      });
+      document
+        .querySelectorAll("#search-engine-dropdown [data-engine]")
+        .forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const engine = e.currentTarget.dataset.engine;
+            setCurrentSearchEngine(engine);
+            searchEngineDropdown.classList.add("hidden");
+            const tab = getActiveTab();
+            if (tab && tab.history[tab.pointer]) {
+              let v = tab.history[tab.pointer];
+              if (!/^(https?:)?\/\//.test(v) && v.length > 0)
+                renderTabContent(tab);
+            }
+          });
+        });
+      updateSearchEngineDisplay();
+
+      const proxyToggleBtn = document.getElementById("proxy-toggle-btn");
+      const proxyToggleIcon = document.getElementById("proxy-toggle-icon");
+      const proxyDropdown = document.getElementById("proxy-dropdown");
+      function getCurrentProxy() {
+        return localStorage.getItem("proxy-backend") || "uv";
+      }
+      function setCurrentProxy(proxy) {
+        localStorage.setItem("proxy-backend", proxy);
+        updateProxyToggleUI(proxy);
+      }
+      function updateProxyToggleUI(proxy) {
+        if (proxy === "scram") {
+          proxyToggleBtn.classList.remove("border-foam");
+          proxyToggleBtn.classList.add("border-gold", "bg-gold/20");
+          proxyToggleIcon.className = "bx bx-network-chart text-2xl";
+          proxyToggleBtn.title = "Scramjet";
+        } else {
+          proxyToggleBtn.classList.remove("border-gold", "bg-gold/20");
+          proxyToggleBtn.classList.add("border-foam");
+          proxyToggleIcon.className = "bx bx-cloud text-2xl";
+          proxyToggleBtn.title = "UV";
+        }
+      }
+      proxyToggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        proxyDropdown.classList.toggle("hidden");
+      });
+      document
+        .querySelectorAll("#proxy-dropdown [data-proxy]")
+        .forEach((btn) => {
+          btn.addEventListener("click", async (e) => {
+            const proxy = e.currentTarget.dataset.proxy;
+            await setProxy(proxy);
+            setCurrentProxy(proxy);
+            proxyDropdown.classList.add("hidden");
+            const tab = getActiveTab();
+            if (tab) renderTabContent(tab);
+          });
+        });
+      updateProxyToggleUI(getCurrentProxy());
+
+      // --- Proxy Setup ---
+      let backend = getCurrentProxy();
+      let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
+      let transport = localStorage.getItem("proxy-transport");
+      setWisp(wisp);
+      setProxy(backend);
+      if (transport) setTransport(transport);
+      else if (navigator.userAgent.indexOf("Firefox") > 0)
+        setTransport("libcurl");
+      else setTransport("epoxy");
+
+      // --- Tabs Logic ---
+      let tabs = [];
+      let activeTab = null;
+      let tabIdCounter = 1;
+      let closedTabsSnapshot = [];
+      let verticalTabsMode = false;
+      function createTab(url = "") {
+        const id = "tab-" + tabIdCounter++;
+        return {
+          id,
+          title: url ? url : "New Tab",
+          url,
+          history: url ? [url] : [],
+          pointer: url ? 0 : -1,
+          pinned: false,
+          locked: false,
+          color: null,
+          customTitle: null,
+        };
+      }
+      function renderTabs() {
+        if (verticalTabsMode) {
+          renderVerticalTabs();
+        } else {
+          renderHorizontalTabs();
+        }
+      }
+
+      function renderHorizontalTabs() {
+        const tabsBar = document.getElementById("tabs-bar");
+        tabsBar.innerHTML = "";
+
+        // Sort tabs: pinned first, then regular
+        const sortedTabs = [...tabs].sort((a, b) => {
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          return 0;
+        });
+
+        sortedTabs.forEach((tab, idx) => {
+          const tabElement = document.createElement("div");
+
+          // Browser-style tab styling
+          const isActive = tab.id === activeTab;
+
+          // Base tab styling with browser-like trapezoid shape
+          tabElement.className = `
+            relative flex items-center px-4 py-2 mx-0.5 cursor-pointer select-none transition-all duration-200 group 
+            min-w-32 max-w-64 h-9 rounded-t-lg border-r border-highlight-med
+            ${
+              isActive
+                ? "bg-surface text-text border-b border-highlight-med z-10 shadow-sm"
+                : "bg-highlight-med text-subtle hover:bg-highlight-med/90 border-b border-highlight-med"
+            }
+          `;
+
+          // Apply color theming for active tabs
+          if (tab.color && isActive) {
+            tabElement.style.borderTop = `2px solid ${tab.color}`;
+          }
+
+          // Pinned tab styling
+          if (tab.pinned) {
+            tabElement.style.background = isActive ? "#f8fafc" : "#e2e8f0";
+            if (isActive) {
+              tabElement.style.borderTop = "2px solid #3b82f6";
+            }
+          }
+
+          tabElement.setAttribute("data-tab-id", tab.id);
+
+          const content = document.createElement("div");
+          content.className = "flex items-center w-full min-w-0 gap-2";
+
+          // Favicon placeholder
+          const favicon = document.createElement("div");
+          favicon.className =
+            "w-4 h-4 flex-shrink-0 rounded-sm bg-gray-400 flex items-center justify-center";
+          if (tab.color) {
+            favicon.style.backgroundColor = tab.color;
+            favicon.innerHTML =
+              '<div class="w-2 h-2 bg-text rounded-full"></div>';
+          } else {
+            favicon.innerHTML = '<i class="bx bx-world text-xs text-text"></i>';
+          }
+          content.appendChild(favicon);
+
+          // Status indicators
+          const statusContainer = document.createElement("div");
+          statusContainer.className = "flex items-center gap-1 flex-shrink-0";
+
+          // Pin indicator
+          if (tab.pinned) {
+            const pinIcon = document.createElement("i");
+            pinIcon.className = "bx bx-pin text-xs text-foam";
+            statusContainer.appendChild(pinIcon);
+          }
+
+          // Lock indicator
+          if (tab.locked) {
+            const lockIcon = document.createElement("i");
+            lockIcon.className = "bx bx-lock-alt text-xs text-gold";
+            statusContainer.appendChild(lockIcon);
+          }
+
+          if (statusContainer.children.length > 0) {
+            content.appendChild(statusContainer);
+          }
+
+          // Tab title
+          const title = document.createElement("span");
+          const displayTitle = tab.customTitle || tab.title || "New Tab";
+          title.textContent =
+            displayTitle.length > 24
+              ? displayTitle.slice(0, 21) + "..."
+              : displayTitle;
+          title.className = "flex-1 truncate text-sm font-normal min-w-0";
+          content.appendChild(title);
+
+          // Tab actions (only show on hover)
+          const actionsContainer = document.createElement("div");
+          actionsContainer.className =
+            "flex items-center gap-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity";
+
+          // Options button
+          const optionsBtn = document.createElement("button");
+          optionsBtn.className =
+            "w-5 h-5 rounded flex items-center justify-center hover:bg-highlight-med/20 transition-colors";
+          optionsBtn.innerHTML =
+            '<i class="bx bx-dots-horizontal-rounded text-xs"></i>';
+          optionsBtn.title = "Tab options";
+          optionsBtn.onclick = (e) => {
+            e.stopPropagation();
+            openTabContextMenu(tab.id);
+          };
+          actionsContainer.appendChild(optionsBtn);
+
+          // Close button
+          const closeBtn = document.createElement("button");
+          closeBtn.className =
+            "w-5 h-5 rounded flex items-center justify-center hover:bg-love/20 transition-colors";
+          closeBtn.innerHTML = '<i class="bx bx-x text-xs"></i>';
+          closeBtn.title = tab.locked ? "Tab is locked" : "Close tab";
+
+          if (tab.locked) {
+            closeBtn.className += " opacity-50 cursor-not-allowed";
+          } else {
+            closeBtn.onclick = (e) => {
+              e.stopPropagation();
+              removeTab(tab.id);
+            };
+          }
+          actionsContainer.appendChild(closeBtn);
+
+          content.appendChild(actionsContainer);
+          tabElement.appendChild(content);
+
+          // Tab interactions
+          tabElement.onclick = () => setActiveTab(tab.id);
+          tabElement.oncontextmenu = (e) => {
+            e.preventDefault();
+            openTabContextMenu(tab.id);
+          };
+
+          tabsBar.appendChild(tabElement);
+        });
+      }
+
+      function renderVerticalTabs() {
+        const verticalTabsList = document.getElementById("vertical-tabs-list");
+        verticalTabsList.innerHTML = "";
+
+        // Sort tabs: pinned first, then regular
+        const sortedTabs = [...tabs].sort((a, b) => {
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          return 0;
+        });
+
+        sortedTabs.forEach((tab) => {
+          const tabElement = document.createElement("button");
+
+          // Browser-style vertical tab styling
+          const isActive = tab.id === activeTab;
+
+          tabElement.className = `
+            w-full p-3 text-left transition-all duration-200 border-l-4 group flex items-center justify-between
+            ${
+              isActive
+                ? "bg-highlight-med text-text border-foam"
+                : "text-subtle border-transparent hover:bg-highlight-med hover:text-text"
+            }
+          `;
+
+          tabElement.setAttribute("data-tab-id", tab.id);
+
+          // Apply color theming
+          if (tab.color) {
+            tabElement.style.borderLeftColor = tab.color;
+            if (isActive) {
+              tabElement.style.backgroundColor = `${tab.color}15`;
+            }
+          }
+
+          // Pinned tab styling
+          if (tab.pinned) {
+            tabElement.style.backgroundColor = isActive ? "#dbeafe" : "#f1f5f9";
+            if (!tab.color) {
+              tabElement.style.borderLeftColor = "#3b82f6";
+            }
+          }
+
+          const leftContent = document.createElement("div");
+          leftContent.className = "flex items-center gap-2 flex-1 min-w-0";
+
+          // Favicon placeholder
+          const favicon = document.createElement("div");
+          favicon.className =
+            "w-4 h-4 flex-shrink-0 rounded-sm bg-gray-400 flex items-center justify-center";
+          if (tab.color) {
+            favicon.style.backgroundColor = tab.color;
+            favicon.innerHTML =
+              '<div class="w-2 h-2 bg-text rounded-full"></div>';
+          } else {
+            favicon.innerHTML = '<i class="bx bx-world text-xs text-text"></i>';
+          }
+          leftContent.appendChild(favicon);
+
+          // Status indicators
+          const statusContainer = document.createElement("div");
+          statusContainer.className = "flex items-center gap-1 flex-shrink-0";
+
+          // Pin indicator
+          if (tab.pinned) {
+            const pinIcon = document.createElement("i");
+            pinIcon.className = "bx bx-pin text-xs text-foam";
+            statusContainer.appendChild(pinIcon);
+          }
+
+          // Lock indicator
+          if (tab.locked) {
+            const lockIcon = document.createElement("i");
+            lockIcon.className = "bx bx-lock-alt text-xs text-gold";
+            statusContainer.appendChild(lockIcon);
+          }
+
+          if (statusContainer.children.length > 0) {
+            leftContent.appendChild(statusContainer);
+          }
+
+          // Tab title
+          const title = document.createElement("span");
+          const displayTitle = tab.customTitle || tab.title || "New Tab";
+          title.textContent =
+            displayTitle.length > 28
+              ? displayTitle.slice(0, 25) + "..."
+              : displayTitle;
+          title.className = "truncate text-sm font-normal min-w-0";
+          leftContent.appendChild(title);
+
+          // Tab actions
+          const rightContent = document.createElement("div");
+          rightContent.className =
+            "flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity";
+
+          // Options button
+          const optionsBtn = document.createElement("button");
+          optionsBtn.className =
+            "w-5 h-5 rounded flex items-center justify-center hover:bg-highlight-med/20 transition-colors";
+          optionsBtn.innerHTML =
+            '<i class="bx bx-dots-horizontal-rounded text-xs"></i>';
+          optionsBtn.title = "Tab options";
+          optionsBtn.onclick = (e) => {
+            e.stopPropagation();
+            openTabContextMenu(tab.id);
+          };
+          rightContent.appendChild(optionsBtn);
+
+          // Close button
+          const closeBtn = document.createElement("button");
+          closeBtn.className =
+            "w-5 h-5 rounded flex items-center justify-center hover:bg-love/20 transition-colors";
+          closeBtn.innerHTML = '<i class="bx bx-x text-xs"></i>';
+          closeBtn.title = tab.locked ? "Tab is locked" : "Close tab";
+
+          if (tab.locked) {
+            closeBtn.className += " opacity-50 cursor-not-allowed";
+          } else {
+            closeBtn.onclick = (e) => {
+              e.stopPropagation();
+              removeTab(tab.id);
+            };
+          }
+          rightContent.appendChild(closeBtn);
+
+          tabElement.appendChild(leftContent);
+          tabElement.appendChild(rightContent);
+
+          tabElement.onclick = () => setActiveTab(tab.id);
+          tabElement.oncontextmenu = (e) => {
+            e.preventDefault();
+            openTabContextMenu(tab.id);
+          };
+
+          verticalTabsList.appendChild(tabElement);
+        });
+
+        // Clear horizontal tabs
+        document.getElementById("tabs-bar").innerHTML = "";
+      }
+      function updateAddressBar(tab) {
+        document.getElementById("address-bar-input").value =
+          tab.history[tab.pointer] || "";
+      }
+      function renderTabContent(tab) {
+        const iframe = document.getElementById("proxy-iframe");
+        if (
+          !tab ||
+          typeof tab.pointer !== "number" ||
+          tab.pointer < 0 ||
+          !tab.history[tab.pointer]
+        ) {
+          iframe.src = "";
+          return;
+        }
+        let url = tab.history[tab.pointer];
+        let search = getCurrentSearchEngine();
+        makeURLAndProxied(url, search).then((src) => {
+          iframe.src = src;
+        });
+      }
+      async function makeURLAndProxied(url, search) {
+        try {
+          let urlToLoad = makeURL(url, search);
+          return await getProxied(urlToLoad);
+        } catch (e) {
+          return "";
+        }
+      }
+      function setActiveTab(tabId) {
+        activeTab = tabId;
+        renderTabs();
+        const tab = tabs.find((t) => t.id === tabId);
+        updateAddressBar(tab);
+        renderTabContent(tab);
+      }
+      function addTab(url = "") {
+        const tab = createTab(url);
+        tabs.push(tab);
+        setActiveTab(tab.id);
+      }
+      // Enhanced tab management functions
+      let currentContextTabId = null;
+
+      function openTabContextMenu(tabId) {
+        currentContextTabId = tabId;
+        const tab = tabs.find((t) => t.id === tabId);
+        if (!tab) return;
+
+        // Update modal elements with current tab data
+        document.getElementById("tab-rename-input").value =
+          tab.customTitle || "";
+
+        // Update color selection
+        document.querySelectorAll(".tab-color-btn").forEach((btn) => {
+          btn.classList.remove("border-overlay");
+          if (
+            (btn.dataset.color === "none" && !tab.color) ||
+            btn.dataset.color === tab.color
+          ) {
+            btn.classList.add("border-overlay");
+          }
+        });
+
+        // Update lock and pin button states
+        const lockBtn = document.getElementById("tab-lock-toggle");
+        const pinBtn = document.getElementById("tab-pin-toggle");
+
+        lockBtn.innerHTML = tab.locked
+          ? '<i class="bx bx-lock-open-alt"></i><span>Unlock Tab</span>'
+          : '<i class="bx bx-lock-alt"></i><span>Lock Tab</span>';
+
+        pinBtn.innerHTML = tab.pinned
+          ? '<i class="bx bx-pin"></i><span>Unpin Tab</span>'
+          : '<i class="bx bx-pin"></i><span>Pin Tab</span>';
+
+        // Show modal
+        const modal = document.getElementById("tab-context-menu-bg");
+        const dialog = document.getElementById("tab-context-menu");
+        modal.classList.remove("pointer-events-none", "opacity-0");
+        modal.classList.add("pointer-events-auto", "opacity-100");
+        dialog.classList.remove("scale-95", "opacity-0");
+        dialog.classList.add("scale-100", "opacity-100");
+      }
+
+      function closeTabContextMenu() {
+        const modal = document.getElementById("tab-context-menu-bg");
+        const dialog = document.getElementById("tab-context-menu");
+        modal.classList.add("pointer-events-none", "opacity-0");
+        modal.classList.remove("pointer-events-auto", "opacity-100");
+        dialog.classList.add("scale-95", "opacity-0");
+        dialog.classList.remove("scale-100", "opacity-100");
+        currentContextTabId = null;
+      }
+
+      function duplicateTab(tabId) {
+        const sourceTab = tabs.find((t) => t.id === tabId);
+        if (!sourceTab) return;
+
+        const newTab = {
+          ...sourceTab,
+          id: "tab-" + tabIdCounter++,
+          pinned: false, // Don't copy pinned state
+          locked: false, // Don't copy locked state
+        };
+
+        tabs.push(newTab);
+        setActiveTab(newTab.id);
+        renderTabs();
+      }
+
+      function renameTab(tabId, newTitle) {
+        const tab = tabs.find((t) => t.id === tabId);
+        if (tab) {
+          tab.customTitle = newTitle.trim() || null;
+          renderTabs();
+        }
+      }
+
+      function setTabColor(tabId, color) {
+        const tab = tabs.find((t) => t.id === tabId);
+        if (tab) {
+          tab.color = color === "none" ? null : color;
+          renderTabs();
+        }
+      }
+
+      function toggleTabLock(tabId) {
+        const tab = tabs.find((t) => t.id === tabId);
+        if (tab) {
+          tab.locked = !tab.locked;
+          renderTabs();
+        }
+      }
+
+      function closeOtherTabs(keepTabId) {
+        const tabToKeep = tabs.find((t) => t.id === keepTabId);
+        if (!tabToKeep) return;
+
+        // Check for locked tabs
+        const lockedTabs = tabs.filter((t) => t.id !== keepTabId && t.locked);
+        if (lockedTabs.length > 0) {
+          alert(
+            `Cannot close ${lockedTabs.length} locked tab(s). Unlock them first.`,
+          );
+          return;
+        }
+
+        takeTabsSnapshot();
+        tabs = [tabToKeep];
+        activeTab = keepTabId;
+        renderTabs();
+      }
+
+      function reloadAllTabs() {
+        const iframe = document.getElementById("proxy-iframe");
+        // Reload current active tab
+        if (activeTab) {
+          const tab = getActiveTab();
+          if (tab && tab.history[tab.pointer]) {
+            renderTabContent(tab);
+          }
+        }
+        // Note: We can only reload the currently visible tab since we have one iframe
+        alert(
+          `Reloaded active tab. Switch to other tabs to reload them individually.`,
+        );
+      }
+
+      function removeTab(tabId) {
+        const tab = tabs.find((t) => t.id === tabId);
+        if (tab && tab.locked) {
+          alert("This tab is locked and cannot be closed.");
+          return;
+        }
+
+        const idx = tabs.findIndex((t) => t.id === tabId);
+        if (idx !== -1) {
+          takeTabsSnapshot();
+          tabs.splice(idx, 1);
+          if (activeTab === tabId) {
+            if (tabs[idx - 1]) setActiveTab(tabs[idx - 1].id);
+            else if (tabs[idx]) setActiveTab(tabs[idx].id);
+            else {
+              activeTab = null;
+              renderTabs();
+              document.getElementById("proxy-iframe").src = "";
+              document.getElementById("address-bar-input").value = "";
+            }
+          } else {
+            renderTabs();
+          }
+        }
+      }
+      function updateTabHistory(tab, url) {
+        if (tab.pointer < tab.history.length - 1) {
+          tab.history = tab.history.slice(0, tab.pointer + 1);
+        }
+        tab.history.push(url);
+        tab.pointer = tab.history.length - 1;
+        tab.url = url;
+        // Only update title if no custom title is set
+        if (!tab.customTitle) {
+          tab.title = url ? url : "New Tab";
+        }
+      }
+      function getActiveTab() {
+        return tabs.find((t) => t.id === activeTab);
+      }
+
+      function togglePinTab(tabId) {
+        const tab = tabs.find((t) => t.id === tabId);
+        if (tab) {
+          tab.pinned = !tab.pinned;
+          renderTabs();
+        }
+      }
+
+      function toggleVerticalTabs() {
+        verticalTabsMode = !verticalTabsMode;
+        const verticalContainer = document.getElementById(
+          "vertical-tabs-container",
+        );
+        const mainContent = document.getElementById("main-content-wrapper");
+        const toggleBtn = document.getElementById("tabs-layout-toggle");
+
+        if (verticalTabsMode) {
+          verticalContainer.classList.add("open");
+          mainContent.classList.remove("collapsed");
+          toggleBtn.innerHTML =
+            '<i class="bx bx-sidebar text-lg rotate-180"></i>';
+          toggleBtn.title = "Hide Vertical Tabs";
+        } else {
+          verticalContainer.classList.remove("open");
+          mainContent.classList.add("collapsed");
+          toggleBtn.innerHTML = '<i class="bx bx-sidebar text-lg"></i>';
+          toggleBtn.title = "Show Vertical Tabs";
+        }
+
+        renderTabs();
+        localStorage.setItem("vertical-tabs-mode", verticalTabsMode);
+      }
+
+      const addressInput = document.getElementById("address-bar-input");
+      const suggestionBox = document.getElementById("suggestion-box");
+      let suggestionActive = -1;
+      let currentSuggestions = [];
+      let suggestionFetchController = null;
+      addressInput.addEventListener("input", async function (e) {
+        const val = addressInput.value.trim();
+        if (!val || val.startsWith("http")) {
+          suggestionBox.classList.add("hidden");
+          suggestionBox.innerHTML = "";
+          currentSuggestions = [];
+          suggestionActive = -1;
+          return;
+        }
+
+        const apiUrl = `https://corsproxy.io/?url=${encodeURIComponent(`https://duckduckgo.com/ac/?q=${encodeURIComponent(val)}&type=list`)}`;
+        if (suggestionFetchController) suggestionFetchController.abort();
+        suggestionFetchController = new AbortController();
+        try {
+          const resp = await fetch(apiUrl, {
+            signal: suggestionFetchController.signal,
+          });
+          if (!resp.ok) throw new Error();
+          const data = await resp.json();
+          let suggestionsData;
+          if (data.contents) {
+            if (typeof data.contents === "string") {
+              suggestionsData = JSON.parse(data.contents);
+            } else {
+              suggestionsData = data.contents;
+            }
+          } else {
+            suggestionsData = data;
+          }
+          currentSuggestions = (suggestionsData[1] || []).filter(Boolean);
+          if (currentSuggestions.length === 0) {
+            suggestionBox.classList.add("hidden");
+            suggestionBox.innerHTML = "";
+            suggestionActive = -1;
+            return;
+          }
+          suggestionBox.innerHTML = currentSuggestions
+            .map(
+              (s, i) =>
+                `<div class="suggestion-item${i === suggestionActive ? " active" : ""}" data-idx="${i}">${s.replace(/</g, "&lt;")}</div>`,
+            )
+            .join("");
+          suggestionBox.classList.remove("hidden");
+          suggestionActive = -1;
+        } catch (err) {
+          suggestionBox.classList.add("hidden");
+          suggestionBox.innerHTML = "";
+          currentSuggestions = [];
+          suggestionActive = -1;
+        }
+      });
+      addressInput.addEventListener("keydown", function (e) {
+        if (
+          !currentSuggestions.length ||
+          suggestionBox.classList.contains("hidden")
+        )
+          return;
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          suggestionActive = (suggestionActive + 1) % currentSuggestions.length;
+          updateSuggestionBoxActive();
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          suggestionActive =
+            (suggestionActive - 1 + currentSuggestions.length) %
+            currentSuggestions.length;
+          updateSuggestionBoxActive();
+        } else if (e.key === "Enter") {
+          if (suggestionActive !== -1) {
+            e.preventDefault();
+            selectSuggestion(suggestionActive);
+          }
+          suggestionBox.classList.add("hidden");
+        } else if (e.key === "Escape") {
+          suggestionBox.classList.add("hidden");
+          suggestionActive = -1;
+        }
+      });
+      function updateSuggestionBoxActive() {
+        Array.from(suggestionBox.children).forEach((el, i) => {
+          if (i === suggestionActive) el.classList.add("active");
+          else el.classList.remove("active");
+        });
+        if (suggestionActive !== -1) {
+          const el = suggestionBox.children[suggestionActive];
+          if (el) el.scrollIntoView({ block: "nearest" });
+          addressInput.value = currentSuggestions[suggestionActive];
+        }
+      }
+      function selectSuggestion(idx) {
+        if (idx < 0 || idx >= currentSuggestions.length) return;
+        addressInput.value = currentSuggestions[idx];
+        suggestionBox.classList.add("hidden");
+        suggestionActive = -1;
+      }
+      suggestionBox.addEventListener("mousedown", function (e) {
+        const target = e.target.closest(".suggestion-item");
+        if (target) {
+          const idx = parseInt(target.dataset.idx);
+          selectSuggestion(idx);
+          setTimeout(() => {
+            document
+              .getElementById("address-bar-form")
+              .dispatchEvent(new Event("submit"));
+          }, 0);
+        }
+      });
+      document.addEventListener("click", function (e) {
+        if (!suggestionBox.contains(e.target) && e.target !== addressInput) {
+          suggestionBox.classList.add("hidden");
+          suggestionActive = -1;
+        }
+        if (!proxyDropdown.contains(e.target) && e.target !== proxyToggleBtn) {
+          proxyDropdown.classList.add("hidden");
+        }
+        if (
+          !searchEngineDropdown.contains(e.target) &&
+          e.target !== searchEngineBtn
+        ) {
+          searchEngineDropdown.classList.add("hidden");
+        }
+      });
+
+      document
+        .getElementById("address-bar-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          suggestionBox.classList.add("hidden");
+          suggestionActive = -1;
+          const tab = getActiveTab();
+          if (!tab) return;
+          let url = addressInput.value.trim();
+          if (!url) return;
+          updateTabHistory(tab, url);
+          renderTabs();
+          renderTabContent(tab);
+        });
+      document.getElementById("back-btn").onclick = function () {
+        const tab = getActiveTab();
+        if (!tab || tab.pointer <= 0) return;
+        tab.pointer--;
+        updateAddressBar(tab);
+        renderTabContent(tab);
+      };
+      document.getElementById("forward-btn").onclick = function () {
+        const tab = getActiveTab();
+        if (!tab || tab.pointer >= tab.history.length - 1) return;
+        tab.pointer++;
+        updateAddressBar(tab);
+        renderTabContent(tab);
+      };
+      document.getElementById("refresh-btn").onclick = function () {
+        const tab = getActiveTab();
+        if (!tab || typeof tab.pointer !== "number" || tab.pointer < 0) return;
+        renderTabContent(tab);
+      };
+      function takeTabsSnapshot() {
+        closedTabsSnapshot = JSON.parse(JSON.stringify(tabs));
+        localStorage.setItem("last-tabs", JSON.stringify(closedTabsSnapshot));
+      }
+      function restoreTabsFromSnapshot() {
+        let fromLS = localStorage.getItem("last-tabs");
+        let snapshot = closedTabsSnapshot.length
+          ? closedTabsSnapshot
+          : fromLS
+            ? JSON.parse(fromLS)
+            : [];
+        if (!snapshot.length) return;
+        tabs = snapshot.map((tab) => ({
+          ...tab,
+          id: "tab-" + tabIdCounter++,
+          pinned: tab.pinned || false,
+        }));
+        activeTab = tabs.length ? tabs[0].id : null;
+        renderTabs();
+        setActiveTab(activeTab);
+        closedTabsSnapshot = [];
+        localStorage.removeItem("last-tabs");
+      }
+      const menuBtn = document.getElementById("menu-btn");
+      const dropdown = document.getElementById("dropdown-menu");
+      menuBtn.onclick = (e) => {
+        dropdown.classList.toggle("hidden");
+        e.stopPropagation();
+      };
+      window.onclick = (e) => {
+        if (!dropdown.contains(e.target) && e.target !== menuBtn)
+          dropdown.classList.add("hidden");
+      };
+      document.getElementById("clear-history-btn").onclick = function () {
+        const tab = getActiveTab();
+        if (!tab) return;
+        tab.history = [];
+        tab.pointer = -1;
+        tab.url = "New Tab";
+        tab.title = "New Tab";
+        updateAddressBar(tab);
+        renderTabContent(tab);
+        dropdown.classList.add("hidden");
+      };
+      document.getElementById("close-all-tabs-btn").onclick = function () {
+        if (tabs.length > 0) takeTabsSnapshot();
+        tabs = [];
+        activeTab = null;
+        renderTabs();
+        document.getElementById("proxy-iframe").src = "";
+        document.getElementById("address-bar-input").value = "";
+        dropdown.classList.add("hidden");
+      };
+      document.getElementById("restore-tabs-btn").onclick = function () {
+        restoreTabsFromSnapshot();
+        dropdown.classList.add("hidden");
+      };
+
+      document.getElementById("unpin-all-tabs-btn").onclick = function () {
+        tabs.forEach((tab) => (tab.pinned = false));
+        renderTabs();
+        dropdown.classList.add("hidden");
+      };
+
+      // Enhanced tab management event listeners
+      document.getElementById("close-other-tabs-btn").onclick = function () {
+        if (activeTab) {
+          closeOtherTabs(activeTab);
+        }
+        dropdown.classList.add("hidden");
+      };
+
+      document.getElementById("reload-all-tabs-btn").onclick = function () {
+        reloadAllTabs();
+        dropdown.classList.add("hidden");
+      };
+
+      document.getElementById("duplicate-active-tab-btn").onclick =
+        function () {
+          if (activeTab) {
+            duplicateTab(activeTab);
+          }
+          dropdown.classList.add("hidden");
+        };
+
+      // Tab context menu event listeners
+      document.getElementById("close-tab-context-menu").onclick =
+        closeTabContextMenu;
+      document.getElementById("tab-context-menu-bg").onclick = function (e) {
+        if (e.target === this) closeTabContextMenu();
+      };
+
+      // Tab rename functionality
+      document
+        .getElementById("tab-rename-input")
+        .addEventListener("input", function () {
+          if (currentContextTabId) {
+            renameTab(currentContextTabId, this.value);
+          }
+        });
+
+      // Color picker functionality
+      document.querySelectorAll(".tab-color-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const color = this.dataset.color;
+          if (currentContextTabId) {
+            setTabColor(currentContextTabId, color);
+          }
+
+          // Update visual selection
+          document
+            .querySelectorAll(".tab-color-btn")
+            .forEach((b) => b.classList.remove("border-overlay"));
+          this.classList.add("border-overlay");
+        });
+      });
+
+      // Toggle buttons
+      document.getElementById("tab-lock-toggle").onclick = function () {
+        if (currentContextTabId) {
+          toggleTabLock(currentContextTabId);
+          openTabContextMenu(currentContextTabId); // Refresh button state
+        }
+      };
+
+      document.getElementById("tab-pin-toggle").onclick = function () {
+        if (currentContextTabId) {
+          togglePinTab(currentContextTabId);
+          openTabContextMenu(currentContextTabId); // Refresh button state
+        }
+      };
+
+      // Action buttons
+      document.getElementById("tab-duplicate-btn").onclick = function () {
+        if (currentContextTabId) {
+          duplicateTab(currentContextTabId);
+          closeTabContextMenu();
+        }
+      };
+
+      document.getElementById("tab-close-btn").onclick = function () {
+        if (currentContextTabId) {
+          removeTab(currentContextTabId);
+          closeTabContextMenu();
+        }
+      };
+      document
+        .getElementById("new-tab-btn")
+        .addEventListener("click", () => addTab());
+
+      document
+        .getElementById("tabs-layout-toggle")
+        .addEventListener("click", toggleVerticalTabs);
+
+      const historyBtn = document.getElementById("history-btn");
+      const historyModalBg = document.getElementById("history-modal-bg");
+      const historyModal = document.getElementById("history-modal");
+      const modalHistoryList = document.getElementById("modal-history-list");
+      const closeHistoryModalBtn = document.getElementById(
+        "close-history-modal",
+      );
+      historyBtn.onclick = (e) => {
+        renderModalHistoryList();
+        openHistoryModal();
+        e.stopPropagation();
+      };
+      closeHistoryModalBtn.onclick = closeHistoryModal;
+      historyModalBg.onclick = function (e) {
+        if (e.target === historyModalBg) closeHistoryModal();
+      };
+      function openHistoryModal() {
+        historyModalBg.classList.remove("pointer-events-none", "opacity-0");
+        historyModalBg.classList.add("pointer-events-auto", "opacity-100");
+        historyModal.classList.remove("scale-95", "opacity-0");
+        historyModal.classList.add("scale-100", "opacity-100");
+      }
+      function closeHistoryModal() {
+        historyModalBg.classList.add("pointer-events-none", "opacity-0");
+        historyModalBg.classList.remove("pointer-events-auto", "opacity-100");
+        historyModal.classList.add("scale-95", "opacity-0");
+        historyModal.classList.remove("scale-100", "opacity-100");
+      }
+      function renderModalHistoryList() {
+        const tab = getActiveTab();
+        modalHistoryList.innerHTML = "";
+        if (!tab || !tab.history.length) {
+          modalHistoryList.innerHTML =
+            "<div class='text-subtle italic text-center py-4'>No history for this tab.</div>";
+          return;
+        }
+        tab.history.forEach((url, idx) => {
+          const row = document.createElement("div");
+          row.className = `flex items-center justify-between p-3 rounded-lg hover:bg-highlight-med cursor-pointer transition-colors ${idx === tab.pointer ? "bg-foam/20 border border-foam" : ""}`;
+          row.innerHTML = `<span class="flex-1 ${idx === tab.pointer ? "text-foam font-bold" : ""} truncate">${url}</span>`;
+          row.onclick = () => {
+            tab.pointer = idx;
+            updateAddressBar(tab);
+            renderTabContent(tab);
+            closeHistoryModal();
+          };
+          if (tab.history.length > 1) {
+            const rmBtn = document.createElement("button");
+            rmBtn.className = "ml-2 text-subtle hover:text-love";
+            rmBtn.title = "Remove from history";
+            rmBtn.textContent = "✕";
+            rmBtn.onclick = (e) => {
+              e.stopPropagation();
+              tab.history.splice(idx, 1);
+              if (tab.pointer >= tab.history.length)
+                tab.pointer = tab.history.length - 1;
+              renderModalHistoryList();
+            };
+            row.appendChild(rmBtn);
+          }
+          modalHistoryList.appendChild(row);
+        });
+      }
+
+      // -- Keyboard Shortcuts --
+      document.addEventListener("keydown", (e) => {
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          !e.shiftKey &&
+          e.key.toLowerCase() === "t"
+        ) {
+          e.preventDefault();
+          addTab();
+        }
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          !e.shiftKey &&
+          e.key.toLowerCase() === "w"
+        ) {
+          e.preventDefault();
+          if (activeTab) removeTab(activeTab);
+        }
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === "Tab") {
+          e.preventDefault();
+          const idx = tabs.findIndex((t) => t.id === activeTab);
+          if (tabs.length > 1 && idx !== -1)
+            setActiveTab(tabs[(idx + 1) % tabs.length].id);
+        }
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "Tab") {
+          e.preventDefault();
+          const idx = tabs.findIndex((t) => t.id === activeTab);
+          if (tabs.length > 1 && idx !== -1)
+            setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length].id);
+        }
+        if (e.altKey && !e.shiftKey && e.key === "ArrowLeft")
+          document.getElementById("back-btn").click();
+        if (e.altKey && !e.shiftKey && e.key === "ArrowRight")
+          document.getElementById("forward-btn").click();
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          e.key.toLowerCase() === "e"
+        ) {
+          e.preventDefault();
+          toggleVerticalTabs();
+        }
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          e.key.toLowerCase() === "p"
+        ) {
+          e.preventDefault();
+          if (activeTab) togglePinTab(activeTab);
+        }
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          e.key.toLowerCase() === "d"
+        ) {
+          e.preventDefault();
+          if (activeTab) duplicateTab(activeTab);
+        }
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          e.key.toLowerCase() === "l"
+        ) {
+          e.preventDefault();
+          if (activeTab) toggleTabLock(activeTab);
+        }
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          e.key.toLowerCase() === "o"
+        ) {
+          e.preventDefault();
+          if (activeTab) closeOtherTabs(activeTab);
+        }
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          e.key.toLowerCase() === "r"
+        ) {
+          e.preventDefault();
+          reloadAllTabs();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          if (activeTab) openTabContextMenu(activeTab);
+        }
+      });
+
+      // -- INIT --
+      // Restore vertical tabs mode from localStorage
+      const savedVerticalMode = localStorage.getItem("vertical-tabs-mode");
+      if (savedVerticalMode === "true") {
+        verticalTabsMode = true;
+        const verticalContainer = document.getElementById(
+          "vertical-tabs-container",
+        );
+        const mainContent = document.getElementById("main-content-wrapper");
+        const toggleBtn = document.getElementById("tabs-layout-toggle");
+
+        verticalContainer.classList.add("open");
+        mainContent.classList.remove("collapsed");
+        toggleBtn.innerHTML =
+          '<i class="bx bx-sidebar text-lg rotate-180"></i>';
+        toggleBtn.title = "Hide Vertical Tabs";
+      }
+
+      if (tabs.length === 0) addTab();
+
+      // Initialize sortable for horizontal tabs
+      const tabsContainer = document.getElementById("tabs-bar");
+      new Sortable(tabsContainer, {
+        animation: 150,
+        onEnd: function (evt) {
+          const { oldIndex, newIndex } = evt;
+          if (oldIndex === newIndex) return;
+
+          // Get sorted tabs (pinned first, then regular)
+          const sortedTabs = [...tabs].sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return 0;
+          });
+
+          const [movedTab] = sortedTabs.splice(oldIndex, 1);
+          sortedTabs.splice(newIndex, 0, movedTab);
+
+          // Update the original tabs array to match the new order
+          tabs = sortedTabs;
+          renderTabs();
+        },
+      });
+
+      // Initialize sortable for vertical tabs
+      const verticalTabsContainer =
+        document.getElementById("vertical-tabs-list");
+      new Sortable(verticalTabsContainer, {
+        animation: 150,
+        onEnd: function (evt) {
+          const { oldIndex, newIndex } = evt;
+          if (oldIndex === newIndex) return;
+
+          // Get sorted tabs (pinned first, then regular)
+          const sortedTabs = [...tabs].sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return 0;
+          });
+
+          const [movedTab] = sortedTabs.splice(oldIndex, 1);
+          sortedTabs.splice(newIndex, 0, movedTab);
+
+          // Update the original tabs array to match the new order
+          tabs = sortedTabs;
+          renderTabs();
+        },
+      });
+    </script>
+  </head>
+  <body
+    class="font-inter bg-gradient-to-br from-base via-surface to-overlay min-h-screen text-text overflow-hidden"
+  >
+    <main class="flex flex-col h-screen">
+      <!-- Browser Window -->
+      <div
+        class="flex-1 flex flex-col bg-surface shadow-2xl border border-overlay rounded-t-lg overflow-hidden"
+      >
+        <!-- Browser Title Bar -->
+        <div
+          class="bg-overlay border-b border-highlight-med px-4 py-2 flex items-center justify-between"
+        >
+          <div class="flex items-center gap-2">
+            <div class="flex gap-1.5">
+              <div class="w-3 h-3 bg-love rounded-full"></div>
+              <div class="w-3 h-3 bg-gold rounded-full"></div>
+              <div class="w-3 h-3 bg-foam rounded-full"></div>
+            </div>
+            <span class="ml-4 text-sm font-medium text-text"
+              >Carbon Browser</span
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="p-1 hover:bg-highlight-med rounded">
+              <i class="bx bx-minus text-muted"></i>
+            </button>
+            <button class="p-1 hover:bg-highlight-med rounded">
+              <i class="bx bx-square text-muted"></i>
+            </button>
+            <button class="p-1 hover:bg-highlight-med rounded">
+              <i class="bx bx-x text-muted"></i>
+            </button>
+          </div>
+        </div>
+        <!-- Vertical Tabs Sidebar -->
+        <div id="vertical-tabs-container" class="vertical-tabs-container">
+          <div class="p-4 border-b border-highlight-med bg-surface">
+            <h3 class="text-text font-semibold flex items-center gap-2">
+              <i class="bx bx-tab text-foam"></i>
+              All Tabs
+            </h3>
+          </div>
+          <div
+            id="vertical-tabs-list"
+            class="overflow-y-auto flex-1 bg-overlay/50"
+          ></div>
+        </div>
+        <!-- Main Content Wrapper -->
+        <div
+          id="main-content-wrapper"
+          class="content-with-vertical-tabs collapsed"
+        >
+          <!-- Browser Tab Bar -->
+          <div
+            class="bg-overlay/80 border-b border-highlight-med flex items-end"
+          >
+            <!-- Tabs Container -->
+            <div
+              id="tabs-bar"
+              class="flex items-end flex-1 overflow-x-auto scrollbar-hide px-2"
+              style="scrollbar-width: none; -ms-overflow-style: none"
+            ></div>
+
+            <!-- Tab Controls -->
+            <div class="flex items-center gap-1 px-2 pb-1">
+              <button
+                id="new-tab-btn"
+                class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center"
+                title="New Tab (Ctrl+T)"
+              >
+                <i class="bx bx-plus text-lg"></i>
+              </button>
+              <button
+                id="tabs-layout-toggle"
+                class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center"
+                title="Show All Tabs"
+              >
+                <i class="bx bx-menu text-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Browser Navigation Bar -->
+          <div class="bg-surface border-b border-highlight-med px-4 py-3">
+            <div class="flex items-center gap-3">
+              <!-- Navigation Controls -->
+              <div class="flex items-center gap-1">
+                <button
+                  id="back-btn"
+                  class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Go back"
+                >
+                  <i class="bx bx-chevron-left text-lg"></i>
+                </button>
+                <button
+                  id="forward-btn"
+                  class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Go forward"
+                >
+                  <i class="bx bx-chevron-right text-lg"></i>
+                </button>
+                <button
+                  id="refresh-btn"
+                  class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center"
+                  title="Reload"
+                >
+                  <i class="bx bx-refresh text-lg"></i>
+                </button>
+              </div>
+
+              <!-- Address Bar -->
+              <form id="address-bar-form" class="flex-1 relative max-w-2xl">
+                <div class="relative">
+                  <i
+                    class="bx bx-lock-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-foam text-sm"
+                  ></i>
+                  <input
+                    id="address-bar-input"
+                    type="text"
+                    spellcheck="false"
+                    autocomplete="off"
+                    placeholder="Search or enter website URL"
+                    class="w-full h-10 pl-9 pr-12 bg-highlight-med border border-overlay text-text rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-foam focus:border-transparent placeholder-muted"
+                  />
+                  <button
+                    type="submit"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-text"
+                  >
+                    <i class="bx bx-search text-sm"></i>
+                  </button>
+                </div>
+                <div id="suggestion-box" class="suggestion-box hidden"></div>
+              </form>
+
+              <!-- Browser Controls -->
+              <div class="flex items-center gap-1">
+                <!-- Search Engine Selector -->
+                <div class="relative">
+                  <button
+                    id="search-engine-btn"
+                    class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center"
+                    title="Search Engine"
+                  >
+                    <i
+                      id="search-engine-icon"
+                      class="bx bxl-google text-lg"
+                    ></i>
+                  </button>
+                  <div
+                    id="search-engine-dropdown"
+                    class="hidden absolute right-0 top-10 bg-overlay border border-highlight-med rounded-lg shadow-lg z-50 py-1 min-w-40"
+                  >
+                    <button
+                      data-engine="https://www.google.com/search?q=%s"
+                      class="w-full flex items-center gap-2 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bxl-google text-foam"></i>Google
+                    </button>
+                    <button
+                      data-engine="https://search.brave.com/search?q=%s"
+                      class="w-full flex items-center gap-2 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bxl-brave text-gold"></i>Brave
+                    </button>
+                    <button
+                      data-engine="https://duckduckgo.com/?q=%s"
+                      class="w-full flex items-center gap-2 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bxl-duckduckgo text-love"></i>DuckDuckGo
+                    </button>
+                    <button
+                      data-engine="https://www.bing.com/search?q=%s"
+                      class="w-full flex items-center gap-2 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bxl-microsoft text-foam"></i>Bing
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Proxy Toggle -->
+                <div class="relative">
+                  <button
+                    id="proxy-toggle-btn"
+                    class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center"
+                    title="Proxy Settings"
+                  >
+                    <i id="proxy-toggle-icon" class="bx bx-shield text-lg"></i>
+                  </button>
+                  <div
+                    id="proxy-dropdown"
+                    class="hidden absolute right-0 top-10 bg-overlay border border-highlight-med rounded-lg shadow-lg z-50 py-1 min-w-36"
+                  >
+                    <button
+                      data-proxy="uv"
+                      class="w-full flex items-center gap-2 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-cloud text-foam"></i>UV
+                    </button>
+                    <button
+                      data-proxy="scram"
+                      class="w-full flex items-center gap-2 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-network-chart text-pine"></i>Scramjet
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Browser Menu -->
+                <div class="relative">
+                  <button
+                    id="menu-btn"
+                    class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center"
+                    title="Customize and control Carbon"
+                  >
+                    <i class="bx bx-dots-vertical-rounded text-lg"></i>
+                  </button>
+                  <div
+                    id="dropdown-menu"
+                    class="hidden absolute right-0 top-10 bg-overlay border border-highlight-med rounded-lg shadow-lg z-50 py-2 min-w-64"
+                  >
+                    <!-- Tab Management -->
+                    <div
+                      class="px-3 py-1 text-xs font-medium text-muted uppercase tracking-wide border-b border-highlight-med mb-2"
+                    >
+                      Tab Management
+                    </div>
+                    <button
+                      id="duplicate-active-tab-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-copy text-foam"></i>
+                      <span>Duplicate Tab</span>
+                      <span class="ml-auto text-xs text-muted"
+                        >Ctrl+Shift+D</span
+                      >
+                    </button>
+                    <button
+                      id="close-other-tabs-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-x-circle text-love"></i>
+                      <span>Close Other Tabs</span>
+                      <span class="ml-auto text-xs text-muted"
+                        >Ctrl+Shift+O</span
+                      >
+                    </button>
+                    <button
+                      id="close-all-tabs-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-x text-love"></i>
+                      <span>Close All Tabs</span>
+                    </button>
+                    <button
+                      id="reload-all-tabs-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-refresh text-pine"></i>
+                      <span>Reload All Tabs</span>
+                      <span class="ml-auto text-xs text-muted"
+                        >Ctrl+Shift+R</span
+                      >
+                    </button>
+                    <button
+                      id="unpin-all-tabs-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-pin text-foam"></i>
+                      <span>Unpin All Tabs</span>
+                    </button>
+
+                    <!-- History & Tools -->
+                    <div
+                      class="px-3 py-1 text-xs font-medium text-muted uppercase tracking-wide border-b border-highlight-med mb-2 mt-3"
+                    >
+                      History & Tools
+                    </div>
+                    <button
+                      id="history-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-history text-iris"></i>
+                      <span>Show History</span>
+                    </button>
+                    <button
+                      id="clear-history-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-trash text-love"></i>
+                      <span>Clear History</span>
+                    </button>
+                    <button
+                      id="restore-tabs-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-history text-pine"></i>
+                      <span>Restore Tabs</span>
+                    </button>
+
+                    <!-- Settings -->
+                    <div
+                      class="px-3 py-1 text-xs font-medium text-muted uppercase tracking-wide border-b border-highlight-med mb-2 mt-3"
+                    >
+                      Settings
+                    </div>
+                    <button
+                      id="wisp-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-server text-muted"></i>
+                      <span>Configure Wisp Server</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Content Area -->
+          <div
+            class="flex-1 bg-gradient-to-br from-base to-surface relative overflow-hidden min-h-0"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-foam/5 via-transparent to-iris/5"
+            ></div>
+            <iframe
+              id="proxy-iframe"
+              title="Browser Content"
+              class="w-full h-full border-0 bg-transparent relative z-10"
+              style="min-height: 0; height: 100%; width: 100%"
+            ></iframe>
+          </div>
+        </div>
+        <!-- End Main Content Wrapper -->
+      </div>
+      <!-- End Browser Window -->
+
+      <!-- History Modal -->
+      <div
+        id="history-modal-bg"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-50"
+      >
+        <div
+          id="history-modal"
+          class="bg-surface border border-highlight-med rounded-xl shadow-2xl max-w-md w-[90vw] p-6 relative transform scale-95 opacity-0 transition-all duration-300"
+        >
+          <button
+            id="close-history-modal"
+            class="absolute top-4 right-4 text-muted hover:text-love transition-colors"
+          >
+            <i class="bx bx-x text-xl"></i>
+          </button>
+          <h2 class="text-lg font-semibold mb-4 text-text flex items-center">
+            <i class="bx bx-history mr-2 text-foam"></i>
+            Tab History
+          </h2>
+          <div
+            id="modal-history-list"
+            class="max-h-80 overflow-y-auto space-y-1 text-subtle"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Tab Context Menu Modal -->
+      <div
+        id="tab-context-menu-bg"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-50"
+      >
+        <div
+          id="tab-context-menu"
+          class="bg-surface border border-highlight-med rounded-xl shadow-2xl max-w-sm w-[90vw] p-6 relative transform scale-95 opacity-0 transition-all duration-300"
+        >
+          <button
+            id="close-tab-context-menu"
+            class="absolute top-3 right-3 text-muted hover:text-love transition-colors"
+          >
+            <i class="bx bx-x text-xl"></i>
+          </button>
+
+          <h2 class="text-lg font-semibold mb-4 text-text flex items-center">
+            <i class="bx bx-cog mr-2 text-foam"></i>
+            Tab Settings
+          </h2>
+
+          <!-- Rename Tab -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-text mb-2">
+              <i class="bx bx-edit mr-1"></i>Custom Title
+            </label>
+            <input
+              id="tab-rename-input"
+              type="text"
+              placeholder="Enter custom title..."
+              class="w-full px-3 py-2 bg-highlight-med border border-overlay rounded-lg text-text placeholder-muted focus:outline-none focus:border-foam focus:ring-1 focus:ring-foam"
+            />
+          </div>
+
+          <!-- Color Picker -->
+          <div class="mb-5">
+            <label class="block text-sm font-medium text-text mb-2">
+              <i class="bx bx-palette mr-1"></i>Tab Color
+            </label>
+            <div class="grid grid-cols-6 gap-2">
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full border-2 border-transparent hover:border-text transition-all"
+                data-color="none"
+                style="
+                  background:
+                    linear-gradient(45deg, #ccc 25%, transparent 25%),
+                    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #ccc 75%),
+                    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+                  background-size: 8px 8px;
+                  background-position:
+                    0 0,
+                    0 4px,
+                    4px -4px,
+                    -4px 0px;
+                "
+                title="No Color"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-red-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#ef4444"
+                title="Red"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-blue-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#3b82f6"
+                title="Blue"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-green-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#22c55e"
+                title="Green"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-yellow-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#eab308"
+                title="Yellow"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-purple-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#a855f7"
+                title="Purple"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-pink-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#ec4899"
+                title="Pink"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-orange-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#f97316"
+                title="Orange"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-teal-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#14b8a6"
+                title="Teal"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-cyan-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#06b6d4"
+                title="Cyan"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-indigo-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#6366f1"
+                title="Indigo"
+              ></button>
+              <button
+                class="tab-color-btn w-8 h-8 rounded-full bg-rose-500 border-2 border-transparent hover:border-text transition-all"
+                data-color="#f43f5e"
+                title="Rose"
+              ></button>
+            </div>
+          </div>
+
+          <!-- Lock/Pin Options -->
+          <div class="flex gap-3 mb-6">
+            <button
+              id="tab-lock-toggle"
+              class="flex-1 flex items-center justify-center gap-2 p-3 bg-highlight-med hover:bg-highlight-high border border-foam/50 rounded-lg transition-all"
+            >
+              <i class="bx bx-lock-alt"></i>
+              <span>Toggle Lock</span>
+            </button>
+            <button
+              id="tab-pin-toggle"
+              class="flex-1 flex items-center justify-center gap-2 p-3 bg-highlight-med hover:bg-highlight-high border border-foam/50 rounded-lg transition-all"
+            >
+              <i class="bx bx-pin"></i>
+              <span>Toggle Pin</span>
+            </button>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-3">
+            <button
+              id="tab-duplicate-btn"
+              class="flex-1 flex items-center justify-center gap-2 p-3 bg-foam hover:bg-foam/80 text-base rounded-lg font-medium transition-all"
+            >
+              <i class="bx bx-copy"></i>
+              Duplicate
+            </button>
+            <button
+              id="tab-close-btn"
+              class="flex-1 flex items-center justify-center gap-2 p-3 bg-love hover:bg-love/80 text-white rounded-lg font-medium transition-all"
+            >
+              <i class="bx bx-x"></i>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
