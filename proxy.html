@@ -104,11 +104,9 @@
   >
     <main class="flex flex-col items-center justify-center min-h-screen p-4">
       <div class="w-full max-w-6xl mx-auto">
-        <!-- Main Container -->
         <div
           class="bg-surface/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-overlay/50 overflow-hidden"
         >
-          <!-- Tab Bar -->
           <div
             class="bg-overlay/80 border-b border-highlight-med/50 flex items-end"
           >
@@ -125,12 +123,10 @@
             </button>
           </div>
 
-          <!-- Header with Controls -->
           <div class="bg-overlay/50 p-4 border-b border-highlight-med/30">
             <div
               class="flex flex-col lg:flex-row gap-4 items-center justify-between"
             >
-              <!-- Proxy Toggle Icon Button Left -->
               <div class="flex items-center gap-6">
                 <div class="relative">
                   <button
@@ -158,7 +154,6 @@
                     </button>
                   </div>
                 </div>
-                <!-- Navigation Buttons -->
                 <div class="flex items-center gap-2">
                   <button
                     id="back-btn"
@@ -199,7 +194,6 @@
                 </div>
               </div>
 
-              <!-- Address Bar -->
               <form id="address-bar-form" class="w-full relative">
                 <input
                   id="address-bar-input"
@@ -213,10 +207,7 @@
                 <div id="suggestion-box" class="suggestion-box hidden"></div>
               </form>
 
-              <!-- Search Engine Icon Button Right -->
               <div class="flex items-center gap-6">
-                <!-- 3-Dots Menu -->
-
                 <div class="relative">
                   <button
                     id="search-engine-btn"
@@ -314,7 +305,6 @@
             </div>
           </div>
 
-          <!-- Content Area -->
           <div class="bg-black border-t border-highlight-med/30">
             <iframe
               id="proxy-iframe"
@@ -325,7 +315,6 @@
         </div>
       </div>
 
-      <!-- History Modal -->
       <div
         id="history-modal-bg"
         class="fixed border-foam border-2 inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-50"
@@ -352,7 +341,6 @@
       </div>
     </main>
     <script type="module">
-      // --- Inlined for performance lol ---
       import {
         makeURL,
         getProxied,
@@ -360,7 +348,6 @@
         setTransport,
         setWisp,
       } from "/lethal.mjs";
-      // --- END LETHAL IMPORTS ---
 
       const engines = {
         "https://search.brave.com/search?q=%s": ["Brave", "bxl-brave"],
@@ -371,7 +358,6 @@
         "https://www.ecosia.org/search?q=%s": ["Ecosia", "bxl-leaf"],
       };
 
-      // --- Search Engine Dropdown as Boxicon Button ---
       const wispBtn = document.getElementById("wisp-btn");
       const searchEngineBtn = document.getElementById("search-engine-btn");
       const searchEngineIcon = document.getElementById("search-engine-icon");
@@ -467,7 +453,6 @@
         });
       updateProxyToggleUI(getCurrentProxy());
 
-      // --- Proxy Setup ---
       let backend = getCurrentProxy();
       let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
       let transport = localStorage.getItem("proxy-transport");
@@ -478,7 +463,7 @@
         setTransport("libcurl");
       else setTransport("epoxy");
 
-      // --- Tabs Logic ---
+      // --- Tabs ---
       let tabs = [];
       let activeTab = null;
       let tabIdCounter = 1;
@@ -950,4 +935,3 @@
     </script>
   </body>
 </html>
-

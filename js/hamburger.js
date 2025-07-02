@@ -5,11 +5,9 @@ const overlay = document.getElementById("overlay");
 function toggleMenu() {
   const isActive = hamburger.classList.toggle("active");
   if (isActive) {
-    // Animate hamburger
     hamburger.children[0].style.transform = "rotate(45deg) translateY(9px)";
     hamburger.children[1].style.opacity = "0";
     hamburger.children[2].style.transform = "rotate(-45deg) translateY(-9px)";
-    // Show menu
     mobileMenu.style.right = "0";
     overlay.classList.add("opacity-100", "visible");
     overlay.classList.remove("opacity-0", "invisible");
@@ -40,7 +38,6 @@ if (hamburger && mobileMenu && overlay) {
   overlay.addEventListener("click", closeMenu);
 }
 
-// Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
     const targetId = this.getAttribute("href");
@@ -54,4 +51,3 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     }
   });
 });
-
