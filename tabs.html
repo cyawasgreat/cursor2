@@ -147,15 +147,9 @@
         background: #524f67;
       }
     </style>
-    <script type="module" defer>
+    <script type="module">
       // --- Inlined for performance lol ---
-      import {
-        makeURL,
-        getProxied,
-        setProxy,
-        setTransport,
-        setWisp,
-      } from "/lethal.mjs";
+      import { makeURL, getProxied, setTransport, setWisp } from "/lethal.mjs";
       // --- END LETHAL IMPORTS ---
 
       const engines = {
@@ -225,50 +219,22 @@
       const proxyToggleBtn = document.getElementById("proxy-toggle-btn");
       const proxyToggleIcon = document.getElementById("proxy-toggle-icon");
       const proxyDropdown = document.getElementById("proxy-dropdown");
-      function getCurrentProxy() {
-        return localStorage.getItem("proxy-backend") || "uv";
-      }
-      function setCurrentProxy(proxy) {
-        localStorage.setItem("proxy-backend", proxy);
-        updateProxyToggleUI(proxy);
-      }
-      function updateProxyToggleUI(proxy) {
-        if (proxy === "scram") {
-          proxyToggleBtn.classList.remove("border-foam");
-          proxyToggleBtn.classList.add("border-gold", "bg-gold/20");
-          proxyToggleIcon.className = "bx bx-network-chart text-2xl";
-          proxyToggleBtn.title = "Scramjet";
-        } else {
-          proxyToggleBtn.classList.remove("border-gold", "bg-gold/20");
-          proxyToggleBtn.classList.add("border-foam");
-          proxyToggleIcon.className = "bx bx-cloud text-2xl";
-          proxyToggleBtn.title = "UV";
-        }
-      }
-      proxyToggleBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        proxyDropdown.classList.toggle("hidden");
-      });
       document
         .querySelectorAll("#proxy-dropdown [data-proxy]")
         .forEach((btn) => {
           btn.addEventListener("click", async (e) => {
             const proxy = e.currentTarget.dataset.proxy;
-            await setProxy(proxy);
             setCurrentProxy(proxy);
             proxyDropdown.classList.add("hidden");
             const tab = getActiveTab();
             if (tab) renderTabContent(tab);
           });
         });
-      updateProxyToggleUI(getCurrentProxy());
 
       // --- Proxy Setup ---
-      let backend = getCurrentProxy();
       let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
       let transport = localStorage.getItem("proxy-transport");
       setWisp(wisp);
-      setProxy(backend);
       if (transport) setTransport(transport);
       else if (navigator.userAgent.indexOf("Firefox") > 0)
         setTransport("libcurl");
@@ -588,10 +554,27 @@
         document.getElementById("address-bar-input").value =
           tab.history[tab.pointer] || "";
       }
-      function renderTabContent(tab) {
-        const iframe = document.getElementById("proxy-iframe");
+      async function renderTabContent(tab) {
+        const iframesContainer = document.getElementById("iframes-container");
+        if (!tab) return;
+        let iframe = document.getElementById("iframe-" + tab.id);
+if (!iframe) {
+  iframe = document.createElement("iframe");
+  iframe.id = "iframe-" + tab.id;
+  iframe.title = "Browser Content";
+  iframe.className = "w-full h-full border-0 bg-transparent absolute inset-0";
+  iframe.style.visibility = "hidden";
+  iframesContainer.appendChild(iframe);
+}
+// Hide all iframes
+Array.from(iframesContainer.children).forEach(f => {
+  f.style.visibility = "hidden";
+  f.style.zIndex = 0;
+});
+// Show this tab's iframe
+iframe.style.visibility = "visible";
+iframe.style.zIndex = 10000;
         if (
-          !tab ||
           typeof tab.pointer !== "number" ||
           tab.pointer < 0 ||
           !tab.history[tab.pointer]
@@ -600,18 +583,7 @@
           return;
         }
         let url = tab.history[tab.pointer];
-        let search = getCurrentSearchEngine();
-        makeURLAndProxied(url, search).then((src) => {
-          iframe.src = src;
-        });
-      }
-      async function makeURLAndProxied(url, search) {
-        try {
-          let urlToLoad = makeURL(url, search);
-          return await getProxied(urlToLoad);
-        } catch (e) {
-          return "";
-        }
+        iframe.src = await getProxied(makeURL(url));
       }
       function setActiveTab(tabId) {
         activeTab = tabId;
@@ -739,38 +711,35 @@
       }
 
       function reloadAllTabs() {
-        const iframe = document.getElementById("proxy-iframe");
-        // Reload current active tab
-        if (activeTab) {
-          const tab = getActiveTab();
+        tabs.forEach((tab) => {
           if (tab && tab.history[tab.pointer]) {
             renderTabContent(tab);
           }
-        }
-        // Note: We can only reload the currently visible tab since we have one iframe
-        alert(
-          `Reloaded active tab. Switch to other tabs to reload them individually.`,
-        );
+        });
+        alert(`Reloaded all tabs.`);
       }
-
       function removeTab(tabId) {
         const tab = tabs.find((t) => t.id === tabId);
         if (tab && tab.locked) {
           alert("This tab is locked and cannot be closed.");
           return;
         }
-
         const idx = tabs.findIndex((t) => t.id === tabId);
         if (idx !== -1) {
           takeTabsSnapshot();
           tabs.splice(idx, 1);
+          // Remove the iframe for this tab
+          const iframe = document.getElementById("iframe-" + tabId);
+          if (iframe) iframe.remove();
           if (activeTab === tabId) {
             if (tabs[idx - 1]) setActiveTab(tabs[idx - 1].id);
             else if (tabs[idx]) setActiveTab(tabs[idx].id);
             else {
               activeTab = null;
               renderTabs();
-              document.getElementById("proxy-iframe").src = "";
+              const iframesContainer =
+                document.getElementById("iframes-container");
+              if (iframesContainer) iframesContainer.innerHTML = "";
               document.getElementById("address-bar-input").value = "";
             }
           } else {
@@ -1313,6 +1282,9 @@
       }
 
       if (tabs.length === 0) addTab();
+      // Clean up iframes on load
+      const iframesContainer = document.getElementById("iframes-container");
+      if (iframesContainer) iframesContainer.innerHTML = "";
 
       // Initialize sortable for horizontal tabs
       const tabsContainer = document.getElementById("tabs-bar");
@@ -1689,12 +1661,11 @@
             <div
               class="absolute inset-0 bg-gradient-to-br from-foam/5 via-transparent to-iris/5"
             ></div>
-            <iframe
-              id="proxy-iframe"
-              title="Browser Content"
-              class="w-full h-full border-0 bg-transparent relative z-10"
+            <div
+              id="iframes-container"
+              class="w-full h-full relative z-10"
               style="min-height: 0; height: 100%; width: 100%"
-            ></iframe>
+            ></div>
           </div>
         </div>
         <!-- End Main Content Wrapper -->
@@ -1881,5 +1852,6 @@
         </div>
       </div>
     </main>
+  <script defer src="js/actions.js"></script>
   </body>
 </html>
