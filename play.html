@@ -427,7 +427,7 @@
           proxyOption = getProxy() === "scram" ? "uv" : "scram";
           localStorage.setItem("proxy-backend", proxyOption);
           await ensureProxyReady();
-          updateProxyToggleUI(proxyOption);
+          syncUi(proxyOption);
           if (
             !document
               .getElementById("gameFrameContainer")
@@ -436,7 +436,7 @@
             loadProxiedGameIframe();
           }
         });
-      updateProxyToggleUI(proxyOption);
+      syncUi(proxyOption);
 
       async function loadProxiedGameIframe() {
         await ensureProxyReady();
@@ -451,7 +451,7 @@
       }
       window.loadProxiedGameIframe = loadProxiedGameIframe;
       window.ensureProxyReady = ensureProxyReady;
-      window.updateProxyToggleUI = updateProxyToggleUI;
+      window.syncUi = syncUi;
     </script>
 
     <script>

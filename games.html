@@ -137,7 +137,7 @@
           Sign In to Play
         </div>
         <button
-          onclick="googleSignIn()"
+          onclick="signIn()"
           class="flex items-center gap-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-6 py-3 rounded-lg text-lg transition"
         >
           <i class="bx bxl-google text-2xl"></i> Sign in with Google
@@ -254,77 +254,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     }
   });
 });
-   /*   import {
-        makeURL,
-        getProxied,
-        setProxy,
-        getProxy,
-        setTransport,
-        setWisp,
-      } from "/lethal.mjs";
-      let currentProxy = localStorage.getItem("proxy-backend") || "uv";
-      async function init() {
-        if (!getProxy() || getProxy() !== currentProxy)
-          await setProxy(currentProxy);
-        let wisp = localStorage.getItem("wisp-server") || "wss://anura.pro/";
-        let transport = localStorage.getItem("proxy-transport");
-        if (wisp) await setWisp(wisp);
-        if (transport) await setTransport(transport);
-        else if (navigator.userAgent.indexOf("Firefox") > 0)
-          await setTransport("libcurl");
-        else await setTransport("epoxy");
-      }
-      function syncUi(proxy) {
-        const proxyBtn = document.getElementById("proxyToggleBtn");
-        const proxyIcon = document.getElementById("proxyToggleIcon");
-        if (!proxyBtn || !proxyToggleIcon) return;
-        if (proxy === "scram") {
-          proxyBtn.classList.remove("border-cyan-400");
-          proxyBtn.classList.add("border-gold", "bg-gold/20");
-          proxyIcon.className = "bx bx-network-chart text-xl";
-          proxyBtn.title = "Scramjet";
-        } else {
-          proxyBtn.classList.remove("border-gold", "bg-gold/20");
-          proxyBtn.classList.add("border-cyan-400");
-          proxyIcon.className = "bx bx-cloud text-xl";
-          proxyBtn.title = "UV";
-        }
-      }
-      document.addEventListener("DOMContentLoaded", function () {
-        setTimeout(() => syncUi(currentProxy), 200);
-        const btn = document.getElementById("proxyBtn");
-        if (btn) {
-          btn.addEventListener("click", async () => {
-            currentProxy = getProxy() === "scram" ? "uv" : "scram";
-            localStorage.setItem("proxy-backend", currentProxy);
-            await ensureProxyReady();
-            syncUi(currentProxy);
-            if (
-              !document
-                .getElementById("gameFrameContainer")
-                .classList.contains("hidden")
-            ) {
-              loadProxame();
-            }
-          });
-        }
-      });
 
-      // shut up i know its a short name
-      async function loadProxame() {
-        await ensureProxyReady();
-        let gamesData = window.gamesData || [];
-        let currentGameId = window.currentGameId;
-        let currentGame = gamesData.find(
-          (g) => String(g.id) === String(currentGameId),
-        );
-        if (!currentGame) return;
-        const proxied = await getProxied(currentGame.url);
-        document.getElementById("gameFrameEmbed").src = proxied;
-      }
-      window.loadProxame = loadProxiedGameIframe;
-      window.ensureProxyReady = ensureProxyReady;
-      window.syncUi = syncUi;*/
     </script>
 
     <script defer>
@@ -341,7 +271,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
       const auth = firebase.auth();
       const db = firebase.firestore();
 
-      function googleSignIn() {
+      function signIn() {
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).catch((error) => {
           document.getElementById("loginError").innerText = error.message;
@@ -358,7 +288,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
       let categoryCounts = {};
       let tagCounts = {};
 
-      async function loadGamesData() {
+      async function loadGames() {
         const res = await fetch("/js/games.json");
         gamesData = await res.json();
         window.gamesData = gamesData;
@@ -376,14 +306,14 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         window.tagCounts = tagCounts;
       }
 
-      function getGameIdFromakeURLRL() {
+      function getId() {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get("id");
       }
-      function setButtonActive(btn, isActive, activeClass = "bg-cyan-500/80") {
+      function makeActive(btn, isActive, activeClass = "bg-cyan-500/80") {
         btn.classList.toggle(activeClass, isActive);
       }
-      function renderUserSection(user) {
+      function renderUser(user) {
         const section = document.getElementById("userSection");
         if (!section) return;
         if (!user) {
@@ -396,13 +326,13 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         `;
         }
       }
-      function showPreloader() {
+      function showLoader() {
         document.getElementById("preloader").style.display = "";
       }
-      function hidePreloader() {
+      function hideLoader() {
         document.getElementById("preloader").style.display = "none";
       }
-      function requestFullScreen(element) {
+      function requestPerms(element) {
         if (element.requestFullscreen) element.requestFullscreen();
         else if (element.webkitRequestFullscreen)
           element.webkitRequestFullscreen();
@@ -410,7 +340,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         else if (element.mozRequestFullScreen) element.mozRequestFullScreen();
       }
 
-      let starRatingData = {
+      let ratings = {
         average: 0,
         count: 0,
         yourRating: 0,
@@ -419,14 +349,14 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         percent: 0,
       };
 
-      function renderStarRatingUI(target = "") {
+      function renderRatings(target = "") {
         const pre = target ? target : "";
         const container = document.getElementById("starsContainer" + pre);
         if (!container) return;
         container.innerHTML = "";
-        let fill = starRatingData.yourRating
-          ? starRatingData.yourRating
-          : Math.round(starRatingData.average);
+        let fill = ratings.yourRating
+          ? ratings.yourRating
+          : Math.round(ratings.average);
         for (let i = 1; i <= 5; i++) {
           const star = document.createElement("span");
           star.textContent = "★";
@@ -462,33 +392,33 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
               }
             });
             star.addEventListener("click", async () => {
-              await submitStarRating(i);
+              await submitRating(i);
             });
           }
           container.appendChild(star);
         }
-        document.getElementById("starRatingSummary" + pre).textContent =
-          starRatingData.count
-            ? `${starRatingData.average.toFixed(2)} / 5`
+        document.getElementById("ratingSummary" + pre).textContent =
+          ratings.count
+            ? `${ratings.average.toFixed(2)} / 5`
             : "Not rated";
-        document.getElementById("starRatingCount" + pre).textContent =
-          starRatingData.count === 1
+        document.getElementById("ratingCount" + pre).textContent =
+          ratings.count === 1
             ? "1 rating"
-            : starRatingData.count
-              ? `${starRatingData.count} ratings`
+            : ratings.count
+              ? `${ratings.count} ratings`
               : "";
-        document.getElementById("starRatingError" + pre).textContent =
-          starRatingData.error || "";
-        renderRatingPercentUI(target);
+        document.getElementById("ratingError" + pre).textContent =
+          ratings.error || "";
+        renderRatingUI(target);
       }
 
-      async function loadStarRating(gameId) {
-        starRatingData.loading = true;
-        starRatingData.error = "";
-        starRatingData.average = 0;
-        starRatingData.count = 0;
-        starRatingData.yourRating = 0;
-        starRatingData.percent = 0;
+      async function loadStars(gameId) {
+        ratings.loading = true;
+        ratings.error = "";
+        ratings.average = 0;
+        ratings.count = 0;
+        ratings.yourRating = 0;
+        ratings.percent = 0;
         try {
           const ratingsRef = db
             .collection("games")
@@ -513,43 +443,43 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
               if (user && doc.id === user.uid) your = d.rating;
             }
           });
-          starRatingData.average = count ? total / count : 0;
-          starRatingData.count = count;
-          starRatingData.yourRating = your;
-          starRatingData.percent = count
+          ratings.average = count ? total / count : 0;
+          ratings.count = count;
+          ratings.yourRating = your;
+          ratings.percent = count
             ? Math.round((highCount / count) * 100)
             : 0;
         } catch (e) {
-          starRatingData.error = "Failed to load ratings.";
+          ratings.error = "Failed to load ratings.";
         }
-        starRatingData.loading = false;
-        renderStarRatingUI();
-        renderStarRatingUI("Frame");
+        ratings.loading = false;
+        renderRatings();
+        renderRatings("Frame");
       }
 
-      async function submitStarRating(stars) {
+      async function submitRating(stars) {
         if (!firebase.auth().currentUser) {
-          starRatingData.error = "Sign in first!";
-          renderStarRatingUI();
-          renderStarRatingUI("Frame");
+          ratings.error = "Sign in first!";
+          renderRatings();
+          renderRatings("Frame");
           return;
         }
         if (!currentGameId) {
-          starRatingData.error = "Game not loaded!";
-          renderStarRatingUI();
-          renderStarRatingUI("Frame");
+          ratings.error = "Game not loaded!";
+          renderRatings();
+          renderRatings("Frame");
           return;
         }
         if (stars < 1 || stars > 5) {
-          starRatingData.error = "Invalid rating value!";
-          renderStarRatingUI();
-          renderStarRatingUI("Frame");
+          ratings.error = "Invalid rating value!";
+          renderRatings();
+          renderRatings("Frame");
           return;
         }
-        starRatingData.loading = true;
-        starRatingData.error = "";
-        renderStarRatingUI();
-        renderStarRatingUI("Frame");
+        ratings.loading = true;
+        ratings.error = "";
+        renderRatings();
+        renderRatings("Frame");
         try {
           const ref = db
             .collection("games")
@@ -560,32 +490,33 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
             rating: stars,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           });
-          starRatingData.yourRating = stars;
-          await loadStarRating(currentGameId);
+          ratings.yourRating = stars;
+          await loadStars(currentGameId);
         } catch (e) {
-          starRatingData.error = "Failed to rate, try again.";
-          renderStarRatingUI();
-          renderStarRatingUI("Frame");
+          ratings.error = "Failed to rate, try again.";
+          renderRatings();
+          renderRatings("Frame");
         }
-        starRatingData.loading = false;
-        renderStarRatingUI();
-        renderStarRatingUI("Frame");
+        ratings.loading = false;
+        renderRatings();
+        renderRatings("Frame");
       }
 
-      function renderRatingPercentUI(target = "") {
+      function renderRatingUI(target = "") {
         const pre = target ? target : "";
         const txt = document.getElementById("ratingPercentText" + pre);
         const bar = document.getElementById("ratingPercentBar" + pre);
         if (!txt || !bar) return;
-        if (starRatingData.count === 0) {
+        if (ratings.count === 0) {
           txt.textContent = "Not enough ratings yet";
           bar.style.width = "0%";
         } else {
-          txt.textContent = `${starRatingData.percent}% of raters gave 4 or 5 stars`;
-          bar.style.width = `${starRatingData.percent}%`;
+          txt.textContent = `${ratings.percent}% of raters gave 4 or 5 stars`;
+          bar.style.width = `${ratings.percent}%`;
         }
       }
 
+      // im literally becoming ai lol
       function getSuggestedGames(currentId, currentCategory, limit = 8) {
         let filtered = [];
         if (currentId && currentCategory) {
@@ -608,7 +539,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         }
         return filtered.slice(0, limit);
       }
-      function renderSuggestedGamesSidebar(suggestedGames) {
+      function renderSuggestedGames(suggestedGames) {
         const container = document.getElementById("suggestedGamesList");
         if (!container) return;
         container.innerHTML = suggestedGames
@@ -721,14 +652,14 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
       `;
       }
       document.addEventListener("DOMContentLoaded", async () => {
-        showPreloader();
+        showLoader();
         document.getElementById("gameFrameContainer").classList.add("hidden");
         document.getElementById("gameInfoHolder").classList.add("hidden");
         document.getElementById("loginScreen").classList.remove("hidden");
         auth.onAuthStateChanged(async (user) => {
-          renderUserSection(user);
+          renderUser(user);
           if (!user) {
-            hidePreloader();
+            hideLoader();
             document.getElementById("loginScreen").classList.remove("hidden");
             document
               .getElementById("gameFrameContainer")
@@ -740,8 +671,8 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
                 .classList.add("hidden");
             return;
           }
-          await loadGamesData();
-          currentGameId = getGameIdFromakeURLRL();
+          await loadGames();
+          currentGameId = getId();
           window.currentGameId = currentGameId;
           currentGame = gamesData.find(
             (g) => g.id == currentGameId || String(g.id) == currentGameId,
@@ -760,9 +691,9 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
           } else {
             suggestedGames = getSuggestedGames(null, null, 8);
           }
-          renderSuggestedGamesSidebar(suggestedGames);
+          renderSuggestedGames(suggestedGames);
           if (!currentGame) {
-            hidePreloader();
+            hideLoader();
             document.getElementById("gameInfoHolder").innerHTML =
               `<div class="text-center p-12 text-red-400">Game not found.</div>`;
             document
@@ -787,12 +718,12 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
           <div class="flex flex-col md:flex-row p-6 gap-6 items-start bg-[#232445]">
             <div class="flex-1">
               <div id="gameTitleDisplay" class="text-2xl md:text-3xl font-extrabold text-cyan-400 mb-3">${currentGame.title}</div>
-              <div id="starRatingSection" class="my-4">
+              <div id="ratingSection" class="my-4">
                 <div id="starsContainer" class="flex gap-1 text-3xl"></div>
                 <div class="text-sm mt-1 flex flex-wrap items-center gap-2 text-cyan-200">
-                  <span id="starRatingSummary"></span>
-                  <span id="starRatingCount"></span>
-                  <span id="starRatingError" class="text-pink-400"></span>
+                  <span id="ratingSummary"></span>
+                  <span id="ratingCount"></span>
+                  <span id="ratingError" class="text-pink-400"></span>
                 </div>
                 <div id="ratingPercentContainer" class="flex items-center mt-2 gap-2">
                   <span id="ratingPercentText" class="text-indigo-400 font-semibold"></span>
@@ -816,10 +747,10 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
             </div>
           </div>
         `;
-          renderStarRatingUI();
+          renderRatings();
           renderGameInfoBox(currentGame, "gameInfoTable");
           document.getElementById("bigPlayBtn").onclick = async () => {
-            showPreloader();
+            showLoader();
             document.getElementById("gameInfoHolder").classList.add("hidden");
             document
               .getElementById("gameFrameContainer")
@@ -851,12 +782,12 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
             <div class="flex flex-col md:flex-row p-6 gap-6 items-start bg-[#232445]">
               <div class="flex-1">
                 <div id="gameTitleDisplayFrame" class="text-2xl md:text-3xl font-extrabold text-cyan-400 mb-3">${currentGame.title}</div>
-                <div id="starRatingSectionFrame" class="max-w-xl my-4">
+                <div id="ratingSectionFrame" class="max-w-xl my-4">
                   <div id="starsContainerFrame" class="flex gap-1 text-3xl"></div>
                   <div class="text-sm mt-1 flex flex-wrap items-center gap-2 text-cyan-200">
-                    <span id="starRatingSummaryFrame"></span>
-                    <span id="starRatingCountFrame"></span>
-                    <span id="starRatingErrorFrame" class="text-pink-400"></span>
+                    <span id="ratingSummaryFrame"></span>
+                    <span id="ratingCountFrame"></span>
+                    <span id="ratingErrorFrame" class="text-pink-400"></span>
                   </div>
                   <div id="ratingPercentContainerFrame" class="flex items-center mt-2 gap-2">
                     <span id="ratingPercentTextFrame" class="text-indigo-400 font-semibold"></span>
@@ -889,24 +820,24 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
             </div>
           `;
             await window.loadProxame();
-            document.getElementById("gameFrameEmbed").onload = hidePreloader;
+            document.getElementById("gameFrameEmbed").onload = hideLoader;
             document.getElementById("gameTitleDisplayFrame").textContent =
               currentGame.title || "";
-            renderStarRatingUI("Frame");
+            renderRatings("Frame");
             renderTagsAreaFrame(currentGame);
             renderCategoryGamesCountFrame(currentGame);
             renderGameInfoBox(currentGame, "gameInfoTableFrame");
             let lists = await getUserGameLists(user.uid);
-            setButtonActive(
+            makeActive(
               document.getElementById("likeBtn"),
               lists.likedGames?.includes(currentGameId),
             );
-            setButtonActive(
+            makeActive(
               document.getElementById("favBtn"),
               lists.favoriteGames?.includes(currentGameId),
               "bg-pink-600/80",
             );
-            setButtonActive(
+            makeActive(
               document.getElementById("playlistBtn"),
               lists.playlist?.includes(currentGameId),
               "bg-yellow-400/80",
@@ -920,7 +851,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
                 !isLiked,
               );
               lists = await getUserGameLists(user.uid);
-              setButtonActive(
+              makeActive(
                 document.getElementById("likeBtn"),
                 lists.likedGames?.includes(currentGameId),
               );
@@ -934,7 +865,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
                 !isFav,
               );
               lists = await getUserGameLists(user.uid);
-              setButtonActive(
+              makeActive(
                 document.getElementById("favBtn"),
                 lists.favoriteGames?.includes(currentGameId),
                 "bg-pink-600/80",
@@ -952,7 +883,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
               }
               alert("Game disliked!");
               lists = await getUserGameLists(user.uid);
-              setButtonActive(
+              makeActive(
                 document.getElementById("likeBtn"),
                 lists.likedGames?.includes(currentGameId),
               );
@@ -971,7 +902,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
                 !inPlaylist,
               );
               lists = await getUserGameLists(user.uid);
-              setButtonActive(
+              makeActive(
                 document.getElementById("playlistBtn"),
                 lists.playlist?.includes(currentGameId),
                 "bg-yellow-400/80",
@@ -980,15 +911,15 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
             document.getElementById("fullscreenBtn").onclick = (e) => {
               e.preventDefault();
               const iframe = document.getElementById("gameFrameEmbed");
-              requestFullScreen(iframe);
+              requestPerms(iframe);
             };
             document.getElementById("fullscreenBtnBottom").onclick = (e) => {
               e.preventDefault();
               const iframe = document.getElementById("gameFrameEmbed");
-              requestFullScreen(iframe);
+              requestPerms(iframe);
             };
           };
-          hidePreloader();
+          hideLoader();
         });
       });
 
@@ -1024,7 +955,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
       }
       window.openTagGamesModal = openTagGamesModal;
       window.closeTagGamesModal = closeTagGamesModal;
-      window.googleSignIn = googleSignIn;
+      window.signIn = signIn;
       window.signOut = signOut;
     </script>
   <script defer src="js/actions.js"></script>
