@@ -562,18 +562,15 @@ if (!iframe) {
   iframe = document.createElement("iframe");
   iframe.id = "iframe-" + tab.id;
   iframe.title = "Browser Content";
-  iframe.className = "w-full h-full border-0 bg-transparent absolute inset-0";
-  iframe.style.visibility = "hidden";
+  iframe.className = "w-full h-full border-0 fixed";
   iframesContainer.appendChild(iframe);
 }
 // Hide all iframes
 Array.from(iframesContainer.children).forEach(f => {
-  f.style.visibility = "hidden";
-  f.style.zIndex = 0;
+  if(f.id != `iframe-${tab.id}`)
+  f.classList.add("hidden");
 });
 // Show this tab's iframe
-iframe.style.visibility = "visible";
-iframe.style.zIndex = 10000;
         if (
           typeof tab.pointer !== "number" ||
           tab.pointer < 0 ||

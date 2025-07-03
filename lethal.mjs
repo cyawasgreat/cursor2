@@ -2,6 +2,10 @@
 ///          Init          ///
 //////////////////////////////
 
+    await import("https://unpkg.com/@titaniumnetwork-dev/ultraviolet/dist/uv.bundle.js")
+
+    await import("./uv.config.js")
+
 await import("/scram/scramjet.shared.js")
 await import("/scram/scramjet.controller.js")
 
@@ -41,9 +45,9 @@ let proxyOption = null
 
 const transportOptions = {
   epoxy:
-    "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs",
+    "https://unpkg.com/@mercuryworkshop/epoxy-transport/dist/index.mjs",
   libcurl:
-    "https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs",
+    "https://unpkg.com/@mercuryworkshop/libcurl-transport/dist/index.mjs",
 }
 
 //////////////////////////////
@@ -123,9 +127,9 @@ export function getWisp() {
 export async function setProxy(proxy) {
   console.log(`lethal.js: Setting proxy backend to ${proxy}`)
   if (proxy === "uv") {
-    await import("https://cdn.jsdelivr.net/gh/Coding4Hours/cdn/uv/uv.bundle.js")
+    await import("https://unpkg.com/@titaniumnetwork-dev/ultraviolet/dist/uv.bundle.js")
 
-    await import("./uv.config.js")
+    await import("/uv.config.js")
   } else {
     import("/scram/scramjet.worker.js")
   }
