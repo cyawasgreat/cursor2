@@ -1,4 +1,4 @@
-const save = (s) => localStorage.setItem("carbonSettings", JSON.stringify(s));
+const save = () => saveSettings();
 
 function syncUI() {
   const presetSel = document.getElementById("panicKeyPreset");
@@ -54,7 +54,7 @@ function attachListeners() {
       const el = document.getElementById(item.id);
       if (el) el.onchange = e => {
         settings[item.key] = e.target.checked;
-        save(settings);
+        save();
         syncUI();
         if (item.actions && Array.isArray(item.actions)) {
           item.actions.forEach(action => {
@@ -66,35 +66,34 @@ function attachListeners() {
       };
     } else if (item.type === "select") {
       const el = document.getElementById(item.id);
-      if (el) el.onchange = e => { settings[item.key] = e.target.value; save(settings); syncUI(); };
+      if (el) el.onchange = e => { settings[item.key] = e.target.value; save(); syncUI(); };
     } else if (item.type === "input") {
       const el = document.getElementById(item.id);
-      if (el) el.oninput = e => { settings[item.key] = e.target.value; save(settings); syncUI(); };
+      if (el) el.oninput = e => { settings[item.key] = e.target.value; save(); syncUI(); };
     } else if (item.type === "radio") {
       item.ids.forEach((id, idx) => {
         const el = document.getElementById(id);
-        if (el) el.onclick = () => { settings[item.key] = item.values[idx]; save(settings); syncUI(); };
+        if (el) el.onclick = () => { settings[item.key] = item.values[idx]; save(); syncUI(); };
       });
     }
   });
   const presetSel = document.getElementById("panicKeyPreset");
   if (presetSel) {
-    presetSel.onchange = e => { settings.panicKey = e.target.value; save(settings); syncUI(); };
+    presetSel.onchange = e => { settings.panicKey = e.target.value; save(); syncUI(); };
   }
   const cloakerSel = document.getElementById("cloakerPreset");
   if (cloakerSel) {
-    cloakerSel.onchange = e => { settings.cloakerPreset = e.target.value; save(settings); syncUI(); };
+    cloakerSel.onchange = e => { settings.cloakerPreset = e.target.value; save(); syncUI(); };
   }
 }
 
 syncUI();
 attachListeners();
-runActions("pageLoad");
 
 window.addEventListener("keydown", (e) => {
   if (settings.antiTeacher && e.key.toUpperCase() === settings.panicKey.toUpperCase()) {
     settings.hideElements = !settings.hideElements;
-    save(settings);
+    save();
     syncUI();
   }
 });
