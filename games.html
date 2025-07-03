@@ -1,963 +1,733 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Play Game - CARBON</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8">
+  <title>CARBON - Games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-20px) rotate(120deg); }
+      66% { transform: translateY(10px) rotate(240deg); }
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeInUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .category-badge, .category-carousel-btn.active, .category-btn.active {
+      background-color: #22d3ee22;
+      color: #06b6d4 !important;
+      border-color: #06b6d4 !important;
+    }
+    .category-carousel-btn {
+      transition: all 0.16s;
+      border-color: #06b6d433;
+      background: #1a1a2e;
+      color: #cbd5e1;
+    }
+    .category-carousel-btn:hover {
+      color: #06b6d4 !important;
+      background: #0ea5e933;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .autocomplete-dropdown {
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .autocomplete-item {
+      transition: all 0.2s ease;
+    }
+    .autocomplete-item:hover, .autocomplete-item.highlighted {
+      background: rgba(6, 182, 212, 0.2);
+      color: #06b6d4;
+    }
+    .gotd-badge {
+      background: linear-gradient(45deg, #fbbf24, #f59e0b);
+      animation: pulse 2s infinite;
+    }
+    .continue-card {
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
-      rel="stylesheet"
-    />
-    <script
-      src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
-    ></script>
-    <script
-      src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
-    ></script>
-    <script
-      src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
-    ></script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4ilHYP1T-kdXbWPoHJHhD2aj0pNWmMec",
+      authDomain: "carbon-services.firebaseapp.com",
+      projectId: "carbon-services",
+      storageBucket: "carbon-services.appspot.com",
+      messagingSenderId: "288385472070",
+      appId: "1:288385472070:web:c4be3ff186e248fc645c47",
+      measurementId: "G-Y2K1RQYE74"
+    };
 
-    <style>
-      .loader {
-        border: 8px solid #16213e;
-        border-top: 8px solid #06b6d4;
-        border-radius: 50%;
-        width: 70px;
-        height: 70px;
-        animation: spin 1s linear infinite;
-        margin: auto;
-      }
-      @keyframes spin {
-        0% {
-          transform: rotate(0);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-      .tag-btn.active {
-        background: #22d3ee22;
-        color: #06b6d4 !important;
-        border-color: #06b6d4 !important;
-      }
-      .suggested-scrollbar::-webkit-scrollbar {
-        width: 6px;
-      }
-      .suggested-scrollbar::-webkit-scrollbar-thumb {
-        background: #232445;
-        border-radius: 3px;
-      }
-      .suggested-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-    </style>
-  </head>
-  <body
-    class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white font-[Inter]"
-  >
-    <div
-      id="preloader"
-      class="fixed z-[9999] inset-0 flex flex-col justify-center items-center bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e]"
-    >
-      <div class="loader"></div>
-    </div>
+    window.firebaseApp = initializeApp(firebaseConfig);
+    window.db = getFirestore(window.firebaseApp);
+    window.auth = getAuth(window.firebaseApp);
+  </script>
+</head>
+<body class="bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-x-hidden relative font-[Inter]">
 
-    <nav
-      class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-8 py-4 bg-[#0f0f23cc] border-b border-white/10 backdrop-blur-md animate-[slideDown_0.5s_ease-out]"
-    >
-      <div
-        class="navbar-brand text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent tracking-tighter select-none"
-      >
-        CARBON
-      </div>
-      <div
-        class="hamburger flex flex-col gap-1.5 cursor-pointer p-2 transition-transform duration-300"
-        id="hamburger"
-      >
-        <span
-          class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"
-        ></span>
-        <span
-          class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"
-        ></span>
-        <span
-          class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"
-        ></span>
-      </div>
-    </nav>
+  <div class="pointer-events-none absolute rounded-full opacity-10 blur-3xl w-[300px] h-[300px] top-[10%] left-[10%] bg-gradient-to-br from-cyan-400 to-indigo-500 animate-[float_20s_infinite_ease-in-out]"></div>
+  <div class="pointer-events-none absolute rounded-full opacity-10 blur-3xl w-[250px] h-[250px] top-[60%] right-[10%] bg-gradient-to-br from-indigo-500 to-purple-500 animate-[float_20s_infinite_ease-in-out] delay-7000"></div>
+  <div class="pointer-events-none absolute rounded-full opacity-10 blur-3xl w-[200px] h-[200px] bottom-[20%] left-[20%] bg-gradient-to-br from-cyan-400 to-purple-500 animate-[float_20s_infinite_ease-in-out] delay-14000"></div>
 
-    <aside
-      class="fixed top-0 right-[-100%] w-72 h-full bg-[#0f0f23f2] backdrop-blur-md border-l border-white/10 pt-24 px-8 z-[999] transition-all duration-300"
-      id="mobileMenu"
-    >
-      <a
-        href="/"
-        class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4"
-        >Home</a
-      >
-      <a
-        href="/games.html"
-        class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4"
-        >Games</a
-      >
-      <a
-        href="/proxy.html"
-        class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4"
-        >Proxy</a
-      >
-      <a
-        href="/settings.html"
-        class="mobile-menu-item block py-4 mb-2 text-white font-semibold text-lg border-b border-white/10 relative overflow-hidden transition-all duration-300 hover:text-cyan-400 hover:pl-4"
-        >Settings</a
-      >
-    </aside>
-    <div
-      class="overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-[998]"
-      id="overlay"
-    ></div>
-
-
-    <div
-      id="loginScreen"
-      class="flex flex-col items-center justify-center h-screen w-full bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] fixed left-0 top-0 z-50"
-    >
-      <div
-        class="bg-[#1a1a2e] rounded-2xl shadow-2xl p-12 border border-cyan-600/30 flex flex-col items-center"
-      >
-        <div
-          class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent mb-6"
-        >
-          Sign In to Play
-        </div>
-        <button
-          onclick="signIn()"
-          class="flex items-center gap-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-6 py-3 rounded-lg text-lg transition"
-        >
-          <i class="bx bxl-google text-2xl"></i> Sign in with Google
+  <nav class="fixed top-0 left-0 right-0 z-[1000] flex justify-between items-center px-8 py-4 bg-[#0f0f23cc] border-b border-white/10 backdrop-blur-md animate-[slideDown_0.5s_ease-out]">
+    <div class="navbar-brand text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent tracking-tighter select-none">CARBON</div>
+    <div class="flex items-center gap-4">
+      <div id="pinnedGame" class="hidden lg:flex items-center gap-3 bg-gradient-to-r from-cyan-400/10 to-indigo-500/10 border border-cyan-400/30 rounded-lg px-4 py-2 backdrop-blur-sm">
+        <i class='bx bx-pin text-cyan-400 text-lg'></i>
+        <span class="text-sm font-semibold text-white/90" id="pinnedGameTitle">No game pinned</span>
+        <button onclick="unpinGame()" class="text-white/60 hover:text-red-400 transition-colors ml-2">
+          <i class='bx bx-x text-sm'></i>
         </button>
-        <div id="loginError" class="text-pink-400 mt-6 hidden"></div>
+      </div>
+      <div id="authContainer" class="flex items-center gap-2">
+        <button id="signInBtn" onclick="signInUser()" class="bg-gradient-to-r from-cyan-400 to-indigo-500 text-black font-semibold px-4 py-2 rounded-lg hover:scale-105 transition-transform duration-300 text-sm">Sign In</button>
+        <div id="userProfile" class="hidden flex items-center gap-2">
+          <img id="userAvatar" src="" alt="User" class="w-8 h-8 rounded-full border-2 border-cyan-400/30">
+          <span id="userName" class="text-sm font-medium text-white/90"></span>
+          <button onclick="signOutUser()" class="text-white/60 hover:text-red-400 transition-colors">
+            <i class='bx bx-log-out text-lg'></i>
+          </button>
+        </div>
+      </div>
+      <div class="hamburger flex flex-col gap-1.5 cursor-pointer p-2 transition-transform duration-300" onclick="toggleMenu()">
+        <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+        <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
+        <span class="block w-6 h-0.5 rounded bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-300"></span>
       </div>
     </div>
+  </nav>
 
-    <main class="pt-28 max-w-7xl mx-auto px-4">
-      <div class="flex flex-col-reverse lg:flex-row gap-8">
-        <div class="flex-1 min-w-0">
-          <div
-            id="gameInfoHolder"
-            class="rounded-2xl shadow-2xl bg-[#181b2a] border border-cyan-600/30 overflow-hidden mt-2"
-          ></div>
-          <div
-            id="gameFrameContainer"
-            class="rounded-2xl shadow-2xl bg-[#181b2a] border border-cyan-600/30 overflow-hidden mt-8 hidden"
-          ></div>
-        </div>
-        <aside
-          id="suggestedSidebar"
-          class="relative w-full lg:w-80 shrink-0 mb-6 lg:mb-0 lg:sticky lg:top-32"
-        >
-          <div
-            class="bg-[#181b2a] border border-cyan-600/30 rounded-[22px] shadow-xl px-4 py-6 h-full"
-          >
-            <h2
-              class="text-xl font-extrabold text-cyan-400 mb-4 flex items-center gap-2"
-            >
-              <i class="bx bx-joystick text-2xl"></i>
-              Suggested Games
-            </h2>
-            <div
-              id="suggestedGamesList"
-              class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto suggested-scrollbar"
-            ></div>
+  <main class="pt-28 pb-8 px-4 relative z-10">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-12 animate-[fadeInUp_1s_ease-out]">
+        <h1 class="text-5xl md:text-6xl font-black bg-gradient-to-r from-cyan-400 via-indigo-500 to-purple-400 bg-clip-text text-transparent mb-4 tracking-tighter">Games Collection</h1>
+        <p class="text-white/70 text-lg max-w-2xl mx-auto">Discover amazing games across all genres. Play instantly in your browser!</p>
+      </div>
+
+      <div class="mb-8 animate-[fadeInUp_1s_ease-out_0.2s_both]">
+        <div class="relative max-w-2xl mx-auto">
+          <input type="text" id="searchInput" placeholder="Search games..." class="w-full px-6 py-4 pl-14 pr-32 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all duration-300" oninput="handleSearchInput()" onkeydown="handleSearchKeydown(event)" onfocus="showAutocomplete()" onblur="hideAutocomplete()">
+          <i class='bx bx-search absolute left-5 top-1/2 -translate-y-1/2 text-white/50 text-xl'></i>
+          <button onclick="playRandomGame()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-400 to-pink-400 text-white font-semibold px-4 py-2 rounded-lg hover:scale-105 transition-transform duration-300 text-sm"><i class='bx bx-shuffle mr-1'></i>Random</button>
+          <div id="autocompleteDropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-2xl autocomplete-dropdown backdrop-blur-md z-50">
+            <div id="autocompleteResults" class="p-2"></div>
           </div>
-        </aside>
-      </div>
-      <div
-        id="tagGamesListModal"
-        class="hidden fixed inset-0 z-[10000] bg-black/70 flex items-center justify-center"
-      >
-        <div
-          class="bg-[#232445] rounded-xl p-8 max-w-lg w-full shadow-2xl border border-cyan-400/20 relative"
-        >
-          <button
-            onclick="closeTagGamesModal()"
-            class="absolute top-3 right-4 text-white/70 hover:text-pink-400 text-xl"
-          >
-            <i class="bx bx-x"></i>
-          </button>
-          <h2
-            class="text-2xl font-bold mb-4 text-cyan-400"
-            id="tagGamesListTitle"
-          ></h2>
-          <div id="tagGamesListBody" class="space-y-2"></div>
         </div>
       </div>
-    </main>
 
-    <script defer type="module">
-const hamburger = document.getElementById("hamburger");
-const mobileMenu = document.getElementById("mobileMenu");
-const overlay = document.getElementById("overlay");
+      <div class="mb-12 animate-[fadeInUp_1s_ease-out_0.4s_both]">
+        <div class="flex flex-wrap justify-center gap-3" id="categoryButtons">
+          <button class="category-btn active px-6 py-3 rounded-full border border-white/20 text-white font-semibold transition-all duration-300 hover:border-cyan-400/50" onclick="filterGames('all', event)">All Games</button>
+        </div>
+      </div>
 
-const toggleMenu = () => {
-  const isActive = hamburger.classList.toggle("active");
-  if (isActive) {
-    hamburger.children[0].style.transform = "rotate(45deg) translateY(9px)";
-    hamburger.children[1].style.opacity = "0";
-    hamburger.children[2].style.transform = "rotate(-45deg) translateY(-9px)";
-    mobileMenu.style.right = "0";
-    overlay.classList.add("opacity-100", "visible");
-    overlay.classList.remove("opacity-0", "invisible");
-  } else {
-    hamburger.children[0].style.transform = "";
-    hamburger.children[1].style.opacity = "";
-    hamburger.children[2].style.transform = "";
-    mobileMenu.style.right = "-100%";
-    overlay.classList.remove("opacity-100", "visible");
-    overlay.classList.add("opacity-0", "invisible");
-  }
-};
+      <div id="continuePlayingSection" class="hidden mb-12 animate-[fadeInUp_1s_ease-out_0.4s_both]">
+        <h2 class="text-2xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">Continue Playing</h2>
+        <div id="continuePlayingCard" class="continue-card rounded-2xl p-6 cursor-pointer hover:scale-105 transition-transform duration-300"></div>
+      </div>
 
-const closeMenu = () => {
-  if (hamburger.classList.contains("active")) {
-    hamburger.classList.remove("active");
-    hamburger.children[0].style.transform = "";
-    hamburger.children[1].style.opacity = "";
-    hamburger.children[2].style.transform = "";
-    mobileMenu.style.right = "-100%";
-    overlay.classList.remove("opacity-100", "visible");
-    overlay.classList.add("opacity-0", "invisible");
-  }
-};
+      <div class="mb-12 animate-[fadeInUp_1s_ease-out_0.5s_both]">
+        <h2 class="text-2xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
+          <span class="gotd-badge px-3 py-1 rounded-full text-black font-bold text-sm">SPECIAL</span>
+          Game of the Day
+        </h2>
+        <div id="gameOfTheDayCard" class="bg-gradient-to-br from-amber-400/10 to-orange-500/10 border border-amber-400/30 rounded-2xl p-6 hover:scale-105 transition-transform duration-300"></div>
+      </div>
 
-if (hamburger && mobileMenu && overlay) {
-  hamburger.addEventListener("click", toggleMenu);
-  overlay.addEventListener("click", closeMenu);
-}
+      <div class="mb-12 animate-[fadeInUp_1s_ease-out_0.55s_both]">
+        <h2 class="text-2xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
+          <i class='bx bx-star text-yellow-400'></i>
+          Daily Picks
+        </h2>
+        <div id="dailyPicksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+      </div>
 
-document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-  anchor.addEventListener("click", function (e) {
-    const targetId = this.getAttribute("href");
-    if (targetId.length > 1) {
-      // check if it's not just "#"
-      const target = document.querySelector(targetId);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: "smooth" });
+      <div class="mb-16 animate-[fadeInUp_1s_ease-out_0.6s_both]">
+        <h2 class="text-3xl font-bold mb-8 bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">Featured Games</h2>
+        <div class="relative">
+          <div class="overflow-hidden rounded-2xl">
+            <div id="featuredCarousel" class="flex transition-transform duration-500 ease-in-out"></div>
+          </div>
+          <button onclick="previousSlide()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"><i class='bx bx-chevron-left text-2xl'></i></button>
+          <button onclick="nextSlide()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"><i class='bx bx-chevron-right text-2xl'></i></button>
+        </div>
+      </div>
+
+      <div class="animate-[fadeInUp_1s_ease-out_0.8s_both]">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">All Games</h2>
+          <div class="text-white/60" id="gameCount">Loading games...</div>
+        </div>
+        <div id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div class="game-card bg-white/5 border border-white/10 rounded-2xl overflow-hidden aspect-[4/3]">
+            <div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="mt-20 px-1 pb-8">
+    <div class="max-w-7xl mx-auto">
+      <h3 class="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">Browse Categories</h3>
+      <div class="relative flex items-center">
+        <button id="catCarouselPrev" class="absolute z-10 left-0 h-12 w-8 flex items-center justify-center rounded-l-lg bg-black/50 hover:bg-black/80 text-white text-xl transition disabled:opacity-30" aria-label="Previous" style="top: 6px;">
+          <i class='bx bx-chevron-left'></i>
+        </button>
+        <div id="categoriesCarousel" class="flex space-x-3 overflow-x-auto no-scrollbar px-10 py-1 scroll-smooth" style="scroll-behavior: smooth;"></div>
+        <button id="catCarouselNext" class="absolute z-10 right-0 h-12 w-8 flex items-center justify-center rounded-r-lg bg-black/50 hover:bg-black/80 text-white text-xl transition disabled:opacity-30" aria-label="Next" style="top: 6px;">
+          <i class='bx bx-chevron-right'></i>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    let gamesData = [];
+    let currentSlide = 0;
+    let filteredGames = [];
+    let currentFilter = 'all';
+    let pinnedGameData = null;
+    let allCategories = [];
+    let categoryCounts = {};
+    let carouselScrollPos = 0;
+    let currentUser = null;
+    let autocompleteData = [];
+    let autocompleteIndex = -1;
+    let gameOfTheDay = null;
+    let dailyPicks = [];
+    let userProgress = {};
+
+    async function fetchGames() {
+      try {
+        const gamesQuery = query(collection(window.db, 'games'), orderBy('title'));
+        const querySnapshot = await getDocs(gamesQuery);
+        const games = [];
+        querySnapshot.forEach((docSnap) => {
+          const game = { ...docSnap.data(), id: docSnap.id };
+          games.push(game);
+        });
+        return games;
+      } catch (error) {
+        console.error('[Firestore] Failed to fetch games:', error);
+        throw error;
       }
     }
-  });
-});
 
-    </script>
-
-    <script defer>
-      const firebaseConfig = {
-        apiKey: "AIzaSyC4ilHYP1T-kdXbWPoHJHhD2aj0pNWmMec",
-        authDomain: "carbon-services.firebaseapp.com",
-        projectId: "carbon-services",
-        storageBucket: "carbon-services.firebasestorage.app",
-        messagingSenderId: "288385472070",
-        appId: "1:288385472070:web:c4be3ff186e248fc645c47",
-        measurementId: "G-Y2K1RQYE74",
-      };
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const db = firebase.firestore();
-
-      function signIn() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch((error) => {
-          document.getElementById("loginError").innerText = error.message;
-          document.getElementById("loginError").classList.remove("hidden");
-        });
-      }
-      function signOut() {
-        auth.signOut().then(() => location.reload());
-      }
-
-      let gamesData = [];
-      let currentGameId = null;
-      let currentGame = null;
-      let categoryCounts = {};
-      let tagCounts = {};
-
-      async function loadGames() {
-        const res = await fetch("/js/games.json");
-        gamesData = await res.json();
-        window.gamesData = gamesData;
-        categoryCounts = {};
-        tagCounts = {};
-        gamesData.forEach((game) => {
-          if (game.category)
-            categoryCounts[game.category] =
-              (categoryCounts[game.category] || 0) + 1;
-          if (game.tags && Array.isArray(game.tags)) {
-            game.tags.forEach((t) => (tagCounts[t] = (tagCounts[t] || 0) + 1));
+    async function initializeGames() {
+      try {
+        document.getElementById('gamesGrid').innerHTML = `<div class="col-span-full text-center text-white/60 py-10">Loading games from Firestore...</div>`;
+        gamesData = await fetchGames();
+        filteredGames = [...gamesData];
+        let catSet = new Set();
+        let counts = {};
+        gamesData.forEach(game => {
+          if (game.category) {
+            catSet.add(game.category);
+            counts[game.category] = (counts[game.category] || 0) + 1;
           }
         });
-        window.categoryCounts = categoryCounts;
-        window.tagCounts = tagCounts;
+        allCategories = Array.from(catSet).sort();
+        categoryCounts = counts;
+        renderCategoryButtons();
+        renderFeaturedCarousel();
+        renderGamesGrid();
+        updateGameCount();
+        renderCategoriesCarousel();
+        setupAutocomplete();
+      } catch (error) {
+        document.getElementById('gamesGrid').innerHTML = `<div class="col-span-full text-center text-red-400 py-10">Failed to load games from Firestore.</div>`;
       }
+    }
 
-      function getId() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get("id");
-      }
-      function makeActive(btn, isActive, activeClass = "bg-cyan-500/80") {
-        btn.classList.toggle(activeClass, isActive);
-      }
-      function renderUser(user) {
-        const section = document.getElementById("userSection");
-        if (!section) return;
-        if (!user) {
-          section.innerHTML = "";
+    async function setupAuth() {
+      onAuthStateChanged(window.auth, async (user) => {
+        if (user) {
+          currentUser = user;
+          document.getElementById('signInBtn').classList.add('hidden');
+          document.getElementById('userProfile').classList.remove('hidden');
+          document.getElementById('userName').textContent = user.isAnonymous ? 'Guest' : user.displayName || 'User';
+          document.getElementById('userAvatar').src = user.photoURL || 'https://via.placeholder.com/32x32/06b6d4/ffffff?text=U';
+          await loadUserProgress();
+          await loadPinnedGames();
         } else {
-          section.innerHTML = `
-          <img src="${user.photoURL}" class="w-8 h-8 rounded-full inline mr-2" title="${user.displayName}">
-          <span class="mr-3">${user.displayName}</span>
-          <button onclick="signOut()" class="bg-white/10 px-3 py-1 rounded hover:bg-pink-600 text-white">Sign Out</button>
-        `;
+          currentUser = null;
+          document.getElementById('signInBtn').classList.remove('hidden');
+          document.getElementById('userProfile').classList.add('hidden');
         }
-      }
-      function showLoader() {
-        document.getElementById("preloader").style.display = "";
-      }
-      function hideLoader() {
-        document.getElementById("preloader").style.display = "none";
-      }
-      function requestPerms(element) {
-        if (element.requestFullscreen) element.requestFullscreen();
-        else if (element.webkitRequestFullscreen)
-          element.webkitRequestFullscreen();
-        else if (element.msRequestFullscreen) element.msRequestFullscreen();
-        else if (element.mozRequestFullScreen) element.mozRequestFullScreen();
-      }
-
-      let ratings = {
-        average: 0,
-        count: 0,
-        yourRating: 0,
-        loading: false,
-        error: "",
-        percent: 0,
-      };
-
-      function renderRatings(target = "") {
-        const pre = target ? target : "";
-        const container = document.getElementById("starsContainer" + pre);
-        if (!container) return;
-        container.innerHTML = "";
-        let fill = ratings.yourRating
-          ? ratings.yourRating
-          : Math.round(ratings.average);
-        for (let i = 1; i <= 5; i++) {
-          const star = document.createElement("span");
-          star.textContent = "★";
-          star.className =
-            "transition-colors duration-150 select-none " +
-            (i <= fill ? "text-yellow-400" : "text-slate-600") +
-            (firebase.auth().currentUser
-              ? " cursor-pointer hover:text-yellow-300"
-              : " cursor-not-allowed");
-          if (firebase.auth().currentUser) {
-            star.addEventListener("mouseenter", () => {
-              for (let j = 0; j < 5; j++)
-                container.children[j].classList.toggle(
-                  "text-yellow-400",
-                  j < i,
-                );
-              for (let j = i; j < 5; j++)
-                container.children[j].classList.toggle(
-                  "text-slate-600",
-                  j >= i,
-                );
-            });
-            star.addEventListener("mouseleave", () => {
-              for (let j = 0; j < 5; j++) {
-                container.children[j].classList.toggle(
-                  "text-yellow-400",
-                  j < fill,
-                );
-                container.children[j].classList.toggle(
-                  "text-slate-600",
-                  j >= fill,
-                );
-              }
-            });
-            star.addEventListener("click", async () => {
-              await submitRating(i);
-            });
-          }
-          container.appendChild(star);
-        }
-        document.getElementById("ratingSummary" + pre).textContent =
-          ratings.count
-            ? `${ratings.average.toFixed(2)} / 5`
-            : "Not rated";
-        document.getElementById("ratingCount" + pre).textContent =
-          ratings.count === 1
-            ? "1 rating"
-            : ratings.count
-              ? `${ratings.count} ratings`
-              : "";
-        document.getElementById("ratingError" + pre).textContent =
-          ratings.error || "";
-        renderRatingUI(target);
-      }
-
-      async function loadStars(gameId) {
-        ratings.loading = true;
-        ratings.error = "";
-        ratings.average = 0;
-        ratings.count = 0;
-        ratings.yourRating = 0;
-        ratings.percent = 0;
-        try {
-          const ratingsRef = db
-            .collection("games")
-            .doc(gameId)
-            .collection("ratings");
-          const snap = await ratingsRef.get();
-          let total = 0,
-            count = 0,
-            your = 0,
-            user = firebase.auth().currentUser;
-          let highCount = 0;
-          snap.forEach((doc) => {
-            const d = doc.data();
-            if (
-              typeof d.rating === "number" &&
-              d.rating >= 1 &&
-              d.rating <= 5
-            ) {
-              total += d.rating;
-              count++;
-              if (d.rating >= 4) highCount++;
-              if (user && doc.id === user.uid) your = d.rating;
-            }
-          });
-          ratings.average = count ? total / count : 0;
-          ratings.count = count;
-          ratings.yourRating = your;
-          ratings.percent = count
-            ? Math.round((highCount / count) * 100)
-            : 0;
-        } catch (e) {
-          ratings.error = "Failed to load ratings.";
-        }
-        ratings.loading = false;
-        renderRatings();
-        renderRatings("Frame");
-      }
-
-      async function submitRating(stars) {
-        if (!firebase.auth().currentUser) {
-          ratings.error = "Sign in first!";
-          renderRatings();
-          renderRatings("Frame");
-          return;
-        }
-        if (!currentGameId) {
-          ratings.error = "Game not loaded!";
-          renderRatings();
-          renderRatings("Frame");
-          return;
-        }
-        if (stars < 1 || stars > 5) {
-          ratings.error = "Invalid rating value!";
-          renderRatings();
-          renderRatings("Frame");
-          return;
-        }
-        ratings.loading = true;
-        ratings.error = "";
-        renderRatings();
-        renderRatings("Frame");
-        try {
-          const ref = db
-            .collection("games")
-            .doc(currentGameId)
-            .collection("ratings")
-            .doc(firebase.auth().currentUser.uid);
-          await ref.set({
-            rating: stars,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          });
-          ratings.yourRating = stars;
-          await loadStars(currentGameId);
-        } catch (e) {
-          ratings.error = "Failed to rate, try again.";
-          renderRatings();
-          renderRatings("Frame");
-        }
-        ratings.loading = false;
-        renderRatings();
-        renderRatings("Frame");
-      }
-
-      function renderRatingUI(target = "") {
-        const pre = target ? target : "";
-        const txt = document.getElementById("ratingPercentText" + pre);
-        const bar = document.getElementById("ratingPercentBar" + pre);
-        if (!txt || !bar) return;
-        if (ratings.count === 0) {
-          txt.textContent = "Not enough ratings yet";
-          bar.style.width = "0%";
-        } else {
-          txt.textContent = `${ratings.percent}% of raters gave 4 or 5 stars`;
-          bar.style.width = `${ratings.percent}%`;
-        }
-      }
-
-      // im literally becoming ai lol
-      function getSuggestedGames(currentId, currentCategory, limit = 8) {
-        let filtered = [];
-        if (currentId && currentCategory) {
-          filtered = gamesData.filter(
-            (g) => g.id !== currentId && g.category === currentCategory,
-          );
-        }
-        if (filtered.length < limit) {
-          let others = gamesData.filter(
-            (g) => g.id !== currentId && !filtered.includes(g),
-          );
-          while (filtered.length < limit && others.length) {
-            let idx = Math.floor(Math.random() * others.length);
-            filtered.push(others.splice(idx, 1)[0]);
-          }
-        }
-        for (let i = filtered.length - 1; i > 0; i--) {
-          let j = Math.floor(Math.random() * (i + 1));
-          [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-        }
-        return filtered.slice(0, limit);
-      }
-      function renderSuggestedGames(suggestedGames) {
-        const container = document.getElementById("suggestedGamesList");
-        if (!container) return;
-        container.innerHTML = suggestedGames
-          .map(
-            (game) => `
-        <a href="play.html?id=${game.id}" 
-          class="block group overflow-hidden shadow-lg bg-[#232445] border border-white/10 hover:border-cyan-400/60 transition relative rounded-[22px]">
-          <div class="relative aspect-[16/9] bg-black rounded-t-[22px] overflow-hidden">
-            <img src="${game.image || "https://via.placeholder.com/400x300/232445/ffffff?text=No+Image"}" 
-                 alt="${game.title}" 
-                 class="w-full h-full object-cover group-hover:scale-[1.04] transition duration-200 pointer-events-none select-none" />
-            ${game.featured ? `<span class="absolute top-2 right-2 bg-indigo-600/80 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow">FEATURED</span>` : ""}
-          </div>
-          <div class="p-3 flex flex-col gap-1">
-            <div class="text-cyan-300 font-bold text-base truncate group-hover:text-cyan-400 transition">${game.title}</div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="bg-cyan-400/20 text-cyan-300 text-xs px-2 py-0.5 rounded-full font-semibold">${game.category || ""}</span>
-              ${game.tags && game.tags.length ? `<span class="bg-indigo-400/20 text-indigo-200 text-xs px-2 py-0.5 rounded-full font-semibold">${game.tags[0]}</span>` : ""}
-            </div>
-          </div>
-        </a>
-      `,
-          )
-          .join("");
-      }
-
-      function openTagGamesModal(tag) {
-        const modal = document.getElementById("tagGamesListModal");
-        const title = document.getElementById("tagGamesListTitle");
-        const body = document.getElementById("tagGamesListBody");
-        const games = gamesData.filter((g) => g.tags && g.tags.includes(tag));
-        title.innerHTML = `${tag.charAt(0).toUpperCase() + tag.slice(1)} <span class="text-cyan-400/70 text-base">(${games.length} game${games.length !== 1 ? "s" : ""})</span>`;
-        body.innerHTML = games.length
-          ? games
-              .map(
-                (g) => `
-        <a href="play.html?id=${g.id}" class="block px-4 py-2 bg-white/5 rounded-md hover:bg-cyan-500/20 text-white/90 font-semibold transition">
-          ${g.title}
-        </a>
-      `,
-              )
-              .join("")
-          : `<div class="text-white/60">No games in this category.</div>`;
-        modal.classList.remove("hidden");
-      }
-      function closeTagGamesModal() {
-        document.getElementById("tagGamesListModal").classList.add("hidden");
-      }
-      function renderCategoryGamesCountFrame(currentGame) {
-        const el = document.getElementById("categoryGamesCountFrame");
-        if (
-          !el ||
-          !currentGame ||
-          !currentGame.category ||
-          !window.categoryCounts
-        ) {
-          if (el) el.textContent = "";
-          return;
-        }
-        const cat = currentGame.category;
-        const count = window.categoryCounts[cat] || 0;
-        el.textContent = `${cat.charAt(0).toUpperCase() + cat.slice(1)} (${count}) games`;
-      }
-      function renderTagsAreaFrame(currentGame) {
-        const el = document.getElementById("tagsAreaFrame");
-        if (!el) return;
-        if (!currentGame || !currentGame.tags || !currentGame.tags.length) {
-          el.innerHTML = "";
-          return;
-        }
-        el.innerHTML = currentGame.tags
-          .map(
-            (tag) => `
-        <button type="button"
-          class="tag-btn inline-block px-3 py-1 bg-gradient-to-r from-cyan-400/20 to-indigo-500/20 text-cyan-300 text-xs rounded-full border border-cyan-400/30 hover:bg-cyan-600/10 transition font-semibold"
-          onclick="openTagGamesModal('${tag}')"
-          >
-          ${tag.charAt(0).toUpperCase() + tag.slice(1)} <span class="text-cyan-400/70">(${window.tagCounts[tag] || 1})</span>
-        </button>
-      `,
-          )
-          .join("");
-      }
-      function renderGameInfoBox(game, tableId) {
-        const el = document.getElementById(tableId);
-        if (!el) return;
-        el.innerHTML = `
-        <tr>
-          <th class="pr-4 py-1 text-cyan-400 font-semibold align-top">Developer</th>
-          <td class="py-1">${game.developer || "Unknown"}</td>
-        </tr>
-        <tr>
-          <th class="pr-4 py-1 text-cyan-400 font-semibold align-top">Release</th>
-          <td class="py-1">${game.release || "Unknown"}</td>
-        </tr>
-        <tr>
-          <th class="pr-4 py-1 text-cyan-400 font-semibold align-top">Technology</th>
-          <td class="py-1">${game.technology || "Unknown"}</td>
-        </tr>
-        <tr>
-          <th class="pr-4 py-1 text-cyan-400 font-semibold align-top">Platforms</th>
-          <td class="flex flex-wrap gap-2 py-1">
-            ${Array.isArray(game.platforms) ? game.platforms.map((p) => `<span class="bg-[#232445] text-cyan-300 px-2 py-[2px] rounded-full text-xs font-semibold">${p}</span>`).join("") : game.platforms || "Unknown"}
-          </td>
-        </tr>
-        <tr>
-          <th class="pr-4 py-1 text-cyan-400 font-semibold align-top">Controls</th>
-          <td class="py-1">${game.controls || "See in-game"}</td>
-        </tr>
-      `;
-      }
-      document.addEventListener("DOMContentLoaded", async () => {
-        showLoader();
-        document.getElementById("gameFrameContainer").classList.add("hidden");
-        document.getElementById("gameInfoHolder").classList.add("hidden");
-        document.getElementById("loginScreen").classList.remove("hidden");
-        auth.onAuthStateChanged(async (user) => {
-          renderUser(user);
-          if (!user) {
-            hideLoader();
-            document.getElementById("loginScreen").classList.remove("hidden");
-            document
-              .getElementById("gameFrameContainer")
-              .classList.add("hidden");
-            document.getElementById("gameInfoHolder").classList.add("hidden");
-            if (document.getElementById("suggestedSidebar"))
-              document
-                .getElementById("suggestedSidebar")
-                .classList.add("hidden");
-            return;
-          }
-          await loadGames();
-          currentGameId = getId();
-          window.currentGameId = currentGameId;
-          currentGame = gamesData.find(
-            (g) => g.id == currentGameId || String(g.id) == currentGameId,
-          );
-          if (document.getElementById("suggestedSidebar"))
-            document
-              .getElementById("suggestedSidebar")
-              .classList.remove("hidden");
-          let suggestedGames = [];
-          if (currentGame) {
-            suggestedGames = getSuggestedGames(
-              currentGame.id,
-              currentGame.category,
-              8,
-            );
-          } else {
-            suggestedGames = getSuggestedGames(null, null, 8);
-          }
-          renderSuggestedGames(suggestedGames);
-          if (!currentGame) {
-            hideLoader();
-            document.getElementById("gameInfoHolder").innerHTML =
-              `<div class="text-center p-12 text-red-400">Game not found.</div>`;
-            document
-              .getElementById("gameInfoHolder")
-              .classList.remove("hidden");
-            return;
-          }
-          document.getElementById("loginScreen").classList.add("hidden");
-          document.getElementById("gameInfoHolder").classList.remove("hidden");
-          document.getElementById("gameInfoHolder").innerHTML = `
-          <div class="relative aspect-video bg-black flex items-center justify-center">
-            <img id="gameCoverImg" src="${currentGame.image || "https://via.placeholder.com/400x300/232445/ffffff?text=No+Image"}" class="w-full h-full object-cover pointer-events-none select-none rounded-t-2xl" alt="Game Cover" />
-            <button id="bigPlayBtn" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-gradient-to-br from-cyan-400 to-indigo-500 text-white font-extrabold rounded-lg px-6 py-3 shadow-lg text-lg hover:scale-105 transition-all flex items-center gap-3 group min-w-[120px]">
-              <i class='bx bx-play-circle text-2xl drop-shadow-lg group-hover:scale-110 transition-transform'></i>
-              <span class="block text-base font-bold">Play</span>
-            </button>
-            <div class="absolute bottom-4 left-4 flex gap-3">
-              <span id="gameCategoryTag" class="bg-cyan-400/30 text-cyan-300 px-3 py-1 rounded text-xs font-semibold">${currentGame.category || ""}</span>
-              ${currentGame.featured ? '<span id="gameFeaturedTag" class="bg-indigo-400/30 text-indigo-200 px-3 py-1 rounded text-xs font-semibold">Featured</span>' : ""}
-            </div>
-          </div>
-          <div class="flex flex-col md:flex-row p-6 gap-6 items-start bg-[#232445]">
-            <div class="flex-1">
-              <div id="gameTitleDisplay" class="text-2xl md:text-3xl font-extrabold text-cyan-400 mb-3">${currentGame.title}</div>
-              <div id="ratingSection" class="my-4">
-                <div id="starsContainer" class="flex gap-1 text-3xl"></div>
-                <div class="text-sm mt-1 flex flex-wrap items-center gap-2 text-cyan-200">
-                  <span id="ratingSummary"></span>
-                  <span id="ratingCount"></span>
-                  <span id="ratingError" class="text-pink-400"></span>
-                </div>
-                <div id="ratingPercentContainer" class="flex items-center mt-2 gap-2">
-                  <span id="ratingPercentText" class="text-indigo-400 font-semibold"></span>
-                  <div class="w-40 h-2 bg-slate-700 rounded overflow-hidden">
-                    <div id="ratingPercentBar" class="h-2 bg-indigo-400 rounded transition-all duration-300" style="width:0%"></div>
-                  </div>
-                </div>
-              </div>
-              <p id="gameFrameDesc" class="text-white/80 mb-2 text-base leading-relaxed">${currentGame.description || ""}</p>
-              <div id="gameInfoBox" class="mt-6 w-full">
-                <div class="bg-[#181b2a] border border-cyan-600/30 rounded-2xl px-6 py-5 text-white">
-                  <table class="w-full text-left">
-                    <tbody id="gameInfoTable"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-col gap-2 w-full md:w-auto">
-              <button id="fullscreenBtn" class="bg-gradient-to-r from-cyan-400 to-indigo-500 text-black font-bold px-6 py-2 rounded-lg hover:scale-105 transition-transform">Fullscreen</button>
-              <a href="profile.html" class="bg-white/10 text-white px-6 py-2 rounded-lg hover:bg-cyan-400/20 transition text-center">View Profile</a>
-            </div>
-          </div>
-        `;
-          renderRatings();
-          renderGameInfoBox(currentGame, "gameInfoTable");
-          document.getElementById("bigPlayBtn").onclick = async () => {
-            showLoader();
-            document.getElementById("gameInfoHolder").classList.add("hidden");
-            document
-              .getElementById("gameFrameContainer")
-              .classList.remove("hidden");
-            document.getElementById("gameFrameContainer").innerHTML = `
-            <div class="relative aspect-video bg-black">
-              <iframe id="gameFrameEmbed" src="" class="w-full h-full" frameborder="0" allowfullscreen allow="fullscreen"></iframe>
-              <div class="absolute top-4 right-4 flex gap-2 z-10">
-                <button id="likeBtn" class="w-10 h-10 bg-white/10 hover:bg-cyan-500/80 text-white rounded-full flex items-center justify-center transition" title="Like">
-                  <i class='bx bx-like text-xl'></i>
-                </button>
-                <button id="favBtn" class="w-10 h-10 bg-white/10 hover:bg-pink-500/80 text-white rounded-full flex items-center justify-center transition" title="Favorite">
-                  <i class='bx bx-heart text-xl'></i>
-                </button>
-                <button id="dislikeBtn" class="w-10 h-10 bg-white/10 hover:bg-red-500/80 text-white rounded-full flex items-center justify-center transition" title="Dislike">
-                  <i class='bx bx-dislike text-xl'></i>
-                </button>
-                <button id="proxyBtn" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center transition border-2 border-cyan-400" title="Toggle Proxy">
-                  <i id="proxyIcon" class="bx bx-cloud text-xl"></i>
-                </button>
-                <button id="shareBtn" class="w-10 h-10 bg-white/10 hover:bg-indigo-500/80 text-white rounded-full flex items-center justify-center transition" title="Share">
-                  <i class='bx bx-share-alt text-xl'></i>
-                </button>
-                <button id="playlistBtn" class="w-10 h-10 bg-white/10 hover:bg-yellow-400/80 text-white rounded-full flex items-center justify-center transition" title="Add to Playlist">
-                  <i class='bx bx-list-plus text-xl'></i>
-                </button>
-              </div>
-            </div>
-            <div class="flex flex-col md:flex-row p-6 gap-6 items-start bg-[#232445]">
-              <div class="flex-1">
-                <div id="gameTitleDisplayFrame" class="text-2xl md:text-3xl font-extrabold text-cyan-400 mb-3">${currentGame.title}</div>
-                <div id="ratingSectionFrame" class="max-w-xl my-4">
-                  <div id="starsContainerFrame" class="flex gap-1 text-3xl"></div>
-                  <div class="text-sm mt-1 flex flex-wrap items-center gap-2 text-cyan-200">
-                    <span id="ratingSummaryFrame"></span>
-                    <span id="ratingCountFrame"></span>
-                    <span id="ratingErrorFrame" class="text-pink-400"></span>
-                  </div>
-                  <div id="ratingPercentContainerFrame" class="flex items-center mt-2 gap-2">
-                    <span id="ratingPercentTextFrame" class="text-indigo-400 font-semibold"></span>
-                    <div class="w-40 h-2 bg-slate-700 rounded overflow-hidden">
-                      <div id="ratingPercentBarFrame" class="h-2 bg-indigo-400 rounded transition-all duration-300" style="width:0%"></div>
-                    </div>
-                  </div>
-                  <div id="tagsAreaFrame" class="mt-5 flex flex-wrap gap-2"></div>
-                  <div id="categoryGamesCountFrame" class="mt-4 text-cyan-300 text-base font-semibold"></div>
-                </div>
-              </div>
-              <div class="flex flex-col gap-2 w-full md:w-auto">
-                <button id="fullscreenBtnBottom" class="bg-gradient-to-r from-cyan-400 to-indigo-500 text-black font-bold px-6 py-2 rounded-lg hover:scale-105 transition-transform">Fullscreen</button>
-                <a href="profile.html" class="bg-white/10 text-white px-6 py-2 rounded-lg hover:bg-cyan-400/20 transition text-center">View Profile</a>
-              </div>
-            </div>
-            <div id="gameInfoBoxFrame" class="mt-6 w-full">
-              <div class="bg-[#181b2a] border border-cyan-600/30 rounded-2xl px-6 py-5 text-white mx-6 mb-8">
-                <table class="w-full text-left">
-                  <tbody id="gameInfoTableFrame"></tbody>
-                </table>
-              </div>
-            </div>
-            <div id="tagGamesListModal" class="hidden fixed inset-0 z-[10000] bg-black/70 flex items-center justify-center">
-              <div class="bg-[#232445] rounded-xl p-8 max-w-lg w-full shadow-2xl border border-cyan-400/20 relative">
-                <button onclick="closeTagGamesModal()" class="absolute top-3 right-4 text-white/70 hover:text-pink-400 text-xl"><i class='bx bx-x'></i></button>
-                <h2 class="text-2xl font-bold mb-4 text-cyan-400" id="tagGamesListTitle"></h2>
-                <div id="tagGamesListBody" class="space-y-2"></div>
-              </div>
-            </div>
-          `;
-            await window.loadProxame();
-            document.getElementById("gameFrameEmbed").onload = hideLoader;
-            document.getElementById("gameTitleDisplayFrame").textContent =
-              currentGame.title || "";
-            renderRatings("Frame");
-            renderTagsAreaFrame(currentGame);
-            renderCategoryGamesCountFrame(currentGame);
-            renderGameInfoBox(currentGame, "gameInfoTableFrame");
-            let lists = await getUserGameLists(user.uid);
-            makeActive(
-              document.getElementById("likeBtn"),
-              lists.likedGames?.includes(currentGameId),
-            );
-            makeActive(
-              document.getElementById("favBtn"),
-              lists.favoriteGames?.includes(currentGameId),
-              "bg-pink-600/80",
-            );
-            makeActive(
-              document.getElementById("playlistBtn"),
-              lists.playlist?.includes(currentGameId),
-              "bg-yellow-400/80",
-            );
-            document.getElementById("likeBtn").onclick = async () => {
-              const isLiked = lists.likedGames?.includes(currentGameId);
-              await updateUserArray(
-                user.uid,
-                "likedGames",
-                currentGameId,
-                !isLiked,
-              );
-              lists = await getUserGameLists(user.uid);
-              makeActive(
-                document.getElementById("likeBtn"),
-                lists.likedGames?.includes(currentGameId),
-              );
-            };
-            document.getElementById("favBtn").onclick = async () => {
-              const isFav = lists.favoriteGames?.includes(currentGameId);
-              await updateUserArray(
-                user.uid,
-                "favoriteGames",
-                currentGameId,
-                !isFav,
-              );
-              lists = await getUserGameLists(user.uid);
-              makeActive(
-                document.getElementById("favBtn"),
-                lists.favoriteGames?.includes(currentGameId),
-                "bg-pink-600/80",
-              );
-            };
-            document.getElementById("dislikeBtn").onclick = async () => {
-              const isLiked = lists.likedGames?.includes(currentGameId);
-              if (isLiked) {
-                await updateUserArray(
-                  user.uid,
-                  "likedGames",
-                  currentGameId,
-                  false,
-                );
-              }
-              alert("Game disliked!");
-              lists = await getUserGameLists(user.uid);
-              makeActive(
-                document.getElementById("likeBtn"),
-                lists.likedGames?.includes(currentGameId),
-              );
-            };
-            document.getElementById("shareBtn").onclick = () => {
-              const url = `${window.location.origin}/play.html?id=${currentGameId}`;
-              navigator.clipboard.writeText(url);
-              alert("Game link copied!");
-            };
-            document.getElementById("playlistBtn").onclick = async () => {
-              const inPlaylist = lists.playlist?.includes(currentGameId);
-              await updateUserArray(
-                user.uid,
-                "playlist",
-                currentGameId,
-                !inPlaylist,
-              );
-              lists = await getUserGameLists(user.uid);
-              makeActive(
-                document.getElementById("playlistBtn"),
-                lists.playlist?.includes(currentGameId),
-                "bg-yellow-400/80",
-              );
-            };
-            document.getElementById("fullscreenBtn").onclick = (e) => {
-              e.preventDefault();
-              const iframe = document.getElementById("gameFrameEmbed");
-              requestPerms(iframe);
-            };
-            document.getElementById("fullscreenBtnBottom").onclick = (e) => {
-              e.preventDefault();
-              const iframe = document.getElementById("gameFrameEmbed");
-              requestPerms(iframe);
-            };
-          };
-          hideLoader();
-        });
       });
+    }
 
-      async function getUserDocRef(uid) {
-        return db.collection("users").doc(uid);
+    window.signInUser = async () => {
+      try {
+        await signInAnonymously(window.auth);
+      } catch (error) {
+        console.error('Sign in failed:', error);
       }
-      async function updateUserArray(uid, field, gameId, add = true) {
-        const ref = await getUserDocRef(uid);
-        if (add) {
-          await ref.set(
-            { [field]: firebase.firestore.FieldValue.arrayUnion(gameId) },
-            { merge: true },
-          );
+    };
+    window.signOutUser = async () => {
+      try {
+        await window.auth.signOut();
+      } catch (error) {
+        console.error('Sign out failed:', error);
+      }
+    };
+
+    function setupAutocomplete() {
+      autocompleteData = gamesData.map(game => ({
+        title: game.title,
+        id: game.id,
+        category: game.category,
+        description: game.description
+      }));
+    }
+    window.handleSearchInput = () => {
+      const input = document.getElementById('searchInput');
+      const query = input.value.toLowerCase().trim();
+      if (query.length > 0) {
+        const matches = autocompleteData.filter(game => 
+          game.title.toLowerCase().includes(query) ||
+          game.category.toLowerCase().includes(query) ||
+          game.description.toLowerCase().includes(query)
+        ).slice(0, 5);
+        showAutocompleteResults(matches, query);
+      } else {
+        hideAutocomplete();
+      }
+      searchGames();
+    };
+    function showAutocompleteResults(matches, query) {
+      const dropdown = document.getElementById('autocompleteDropdown');
+      const results = document.getElementById('autocompleteResults');
+      if (matches.length === 0) {
+        hideAutocomplete();
+        return;
+      }
+      results.innerHTML = matches.map((game, index) => `
+        <div class="autocomplete-item p-3 rounded-lg cursor-pointer ${index === autocompleteIndex ? 'highlighted' : ''}" 
+             onclick="selectAutocompleteItem('${game.title.replace(/'/g, "\\'")}')"
+             data-index="${index}">
+          <div class="flex items-center gap-3">
+            <i class='bx bx-game text-cyan-400'></i>
+            <div>
+              <div class="font-semibold text-white">${highlightText(game.title, query)}</div>
+              <div class="text-sm text-white/60">${game.category} • ${highlightText(game.description, query)}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      dropdown.classList.remove('hidden');
+    }
+    function highlightText(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<span class="text-cyan-400 font-semibold">$1</span>');
+    }
+    window.handleSearchKeydown = (event) => {
+      const dropdown = document.getElementById('autocompleteDropdown');
+      const items = dropdown.querySelectorAll('.autocomplete-item');
+      if (dropdown.classList.contains('hidden')) return;
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          autocompleteIndex = (autocompleteIndex + 1) % items.length;
+          updateAutocompleteHighlight();
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          autocompleteIndex = (autocompleteIndex - 1 + items.length) % items.length;
+          updateAutocompleteHighlight();
+          break;
+        case 'Enter':
+          event.preventDefault();
+          if (autocompleteIndex >= 0 && items[autocompleteIndex]) {
+            const title = items[autocompleteIndex].querySelector('.font-semibold').textContent;
+            selectAutocompleteItem(title);
+          }
+          break;
+        case 'Escape':
+          hideAutocomplete();
+          break;
+      }
+    };
+    function updateAutocompleteHighlight() {
+      const items = document.querySelectorAll('.autocomplete-item');
+      items.forEach((item, index) => {
+        if (index === autocompleteIndex) {
+          item.classList.add('highlighted');
         } else {
-          await ref.set(
-            { [field]: firebase.firestore.FieldValue.arrayRemove(gameId) },
-            { merge: true },
-          );
+          item.classList.remove('highlighted');
         }
+      });
+    }
+    window.selectAutocompleteItem = (title) => {
+      document.getElementById('searchInput').value = title;
+      hideAutocomplete();
+      searchGames();
+    };
+    window.showAutocomplete = () => {
+      const input = document.getElementById('searchInput');
+      if (input.value.trim().length > 0) {
+        handleSearchInput();
       }
-      async function getUserGameLists(uid) {
-        const doc = await db.collection("users").doc(uid).get();
-        return doc.exists
-          ? doc.data()
-          : { likedGames: [], favoriteGames: [], playlist: [], history: [] };
+    };
+    window.hideAutocomplete = () => {
+      setTimeout(() => {
+        document.getElementById('autocompleteDropdown').classList.add('hidden');
+        autocompleteIndex = -1;
+      }, 200);
+    };
+
+    async function generateDailyContent() {
+      const today = new Date().toDateString();
+      try {
+        const dailyDoc = await getDoc(doc(window.db, 'daily-content', today));
+        if (dailyDoc.exists()) {
+          const data = dailyDoc.data();
+          gameOfTheDay = data.gameOfTheDay;
+          dailyPicks = data.dailyPicks;
+        } else {
+          gameOfTheDay = gamesData[Math.floor(Math.random() * gamesData.length)];
+          dailyPicks = getRandomGames(4);
+          await setDoc(doc(window.db, 'daily-content', today), {
+            gameOfTheDay,
+            dailyPicks,
+            date: today
+          });
+        }
+        renderGameOfTheDay();
+        renderDailyPicks();
+      } catch (error) {
+        gameOfTheDay = gamesData[Math.floor(Math.random() * gamesData.length)];
+        dailyPicks = getRandomGames(4);
+        renderGameOfTheDay();
+        renderDailyPicks();
       }
-      async function updateGameHistory(uid, gameId) {
-        const ref = await getUserDocRef(uid);
-        await ref.set(
-          { history: firebase.firestore.FieldValue.arrayUnion(gameId) },
-          { merge: true },
-        );
+    }
+    function getRandomGames(count) {
+      const shuffled = [...gamesData].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    }
+    function renderGameOfTheDay() {
+      const card = document.getElementById('gameOfTheDayCard');
+      if (!gameOfTheDay) return;
+      card.innerHTML = `
+        <div class="flex items-center gap-6">
+          <img src="${gameOfTheDay.image}" alt="${gameOfTheDay.title}" class="w-24 h-24 rounded-xl object-cover">
+          <div class="flex-1">
+            <h3 class="text-xl font-bold text-white mb-2">${gameOfTheDay.title}</h3>
+            <p class="text-white/70 mb-4">${gameOfTheDay.description}</p>
+            <div class="flex gap-3">
+              <a href="play.html?id=${gameOfTheDay.id}" class="bg-gradient-to-r from-amber-400 to-orange-500 text-black font-semibold px-6 py-2 rounded-lg hover:scale-105 transition-transform duration-300">
+                Play Game of the Day
+              </a>
+              <button onclick="pinGame('${gameOfTheDay.id}')" class="bg-white/20 backdrop-blur-sm text-white font-semibold px-4 py-2 rounded-lg hover:bg-white/30 transition-all duration-300">
+                <i class='bx bx-pin'></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    function renderDailyPicks() {
+      const grid = document.getElementById('dailyPicksGrid');
+      grid.innerHTML = dailyPicks.map(game => `
+        <div class="bg-white/5 border border-white/10 rounded-xl hover:border-cyan-400/30 transition-all duration-300 overflow-hidden group cursor-pointer" onclick="window.location.href='play.html?id=${game.id}';">
+          <img src="${game.image}" alt="${game.title}" class="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-300">
+          <div class="p-4">
+            <h4 class="font-semibold text-white mb-1">${game.title}</h4>
+            <p class="text-white/60 text-sm">${game.category}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadUserProgress() {
+      if (!currentUser) return;
+      try {
+        const progressDoc = await getDoc(doc(window.db, 'user-progress', currentUser.uid));
+        if (progressDoc.exists()) {
+          userProgress = progressDoc.data();
+          renderContinuePlaying();
+        }
+      } catch (error) {
+        console.error('Failed to load user progress:', error);
       }
-      window.openTagGamesModal = openTagGamesModal;
-      window.closeTagGamesModal = closeTagGamesModal;
-      window.signIn = signIn;
-      window.signOut = signOut;
-    </script>
-  <script defer src="js/actions.js"></script>
-  </body>
+    }
+    function renderContinuePlaying() {
+      const section = document.getElementById('continuePlayingSection');
+      const card = document.getElementById('continuePlayingCard');
+      if (!userProgress.lastPlayed) {
+        section.classList.add('hidden');
+        return;
+      }
+      const lastGame = gamesData.find(g => g.id === userProgress.lastPlayed.gameId);
+      if (!lastGame) {
+        section.classList.add('hidden');
+        return;
+      }
+      section.classList.remove('hidden');
+      card.innerHTML = `
+        <div class="flex items-center gap-6">
+          <img src="${lastGame.image}" alt="${lastGame.title}" class="w-20 h-20 rounded-xl object-cover">
+          <div class="flex-1">
+            <h3 class="text-lg font-bold text-white mb-1">${lastGame.title}</h3>
+            <p class="text-white/60 text-sm mb-2">Last played ${new Date(userProgress.lastPlayed.timestamp).toLocaleDateString()}</p>
+            <div class="w-full bg-white/10 rounded-full h-2 mb-3">
+              <div class="bg-gradient-to-r from-cyan-400 to-indigo-500 h-2 rounded-full" style="width: ${userProgress.lastPlayed.progress || 0}%"></div>
+            </div>
+            <a href="play.html?id=${lastGame.id}" class="bg-gradient-to-r from-cyan-400 to-indigo-500 text-black font-semibold px-4 py-2 rounded-lg hover:scale-105 transition-transform duration-300 text-sm">
+              Continue Playing
+            </a>
+          </div>
+        </div>
+      `;
+      card.onclick = () => {
+        window.location.href = `play.html?id=${lastGame.id}`;
+      };
+    }
+
+    window.playRandomGame = () => {
+      const randomGame = gamesData[Math.floor(Math.random() * gamesData.length)];
+      window.location.href = `play.html?id=${randomGame.id}`;
+    };
+
+    async function loadPinnedGames() {
+      if (!currentUser) return;
+      try {
+        const pinnedDoc = await getDoc(doc(window.db, 'user-pins', currentUser.uid));
+        if (pinnedDoc.exists()) {
+          const pinnedGameId = pinnedDoc.data().gameId;
+          if (pinnedGameId) {
+            const game = gamesData.find(g => g.id === pinnedGameId);
+            if (game) {
+              pinnedGameData = game;
+              document.getElementById('pinnedGame').classList.remove('hidden');
+              document.getElementById('pinnedGameTitle').textContent = game.title;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load pinned games:', error);
+      }
+    }
+    window.pinGame = async (gameId) => {
+      const game = gamesData.find(g => g.id === gameId);
+      if (!game || !currentUser) return;
+      try {
+        await setDoc(doc(window.db, 'user-pins', currentUser.uid), {
+          gameId: gameId,
+          timestamp: Date.now()
+        });
+        pinnedGameData = game;
+        document.getElementById('pinnedGame').classList.remove('hidden');
+        document.getElementById('pinnedGameTitle').textContent = game.title;
+      } catch (error) {
+        console.error('Failed to pin game:', error);
+      }
+    };
+    window.unpinGame = async () => {
+      if (!currentUser) return;
+      try {
+        await setDoc(doc(window.db, 'user-pins', currentUser.uid), {
+          gameId: null,
+          timestamp: Date.now()
+        });
+        pinnedGameData = null;
+        document.getElementById('pinnedGame').classList.add('hidden');
+      } catch (error) {
+        console.error('Failed to unpin game:', error);
+      }
+    };
+
+    function renderGamesGrid() {
+      const grid = document.getElementById('gamesGrid');
+      if (filteredGames.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center text-white/60 py-10">No games found.</div>';
+        return;
+      }
+      grid.innerHTML = filteredGames.map(game => `
+        <div class="game-card bg-white/5 border border-white/10 rounded-2xl hover:border-cyan-400/30 transition-all duration-300 aspect-[4/3] relative group" data-category="${game.category}" data-title="${game.title.toLowerCase()}">
+          <div class="relative w-full h-full overflow-hidden rounded-2xl">
+            <img src="${game.image}" alt="${game.title}" class="w-full h-full object-cover">
+            <img src="${game.gif || game.image}" alt="${game.title} gameplay" class="absolute top-0 left-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div class="absolute top-3 right-3 z-10 flex gap-2">
+              <button onclick="pinGame('${game.id}')" class="bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 backdrop-blur-sm">
+                <i class='bx bx-pin text-sm'></i>
+              </button>
+              ${gameOfTheDay && gameOfTheDay.id === game.id ? '<div class="gotd-badge px-2 py-1 rounded-full text-black font-bold text-xs">GOTD</div>' : ''}
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+              <h3 class="font-semibold text-white mb-1">${game.title}</h3>
+              <p class="text-white/60 text-sm mb-3">${game.description}</p>
+              <div class="flex items-center justify-between">
+                <button type="button"
+                  class="category-badge px-3 py-1 rounded-full text-cyan-300 border border-cyan-400/30 font-semibold text-xs transition hover:bg-cyan-600/10 hover:text-cyan-400"
+                  onclick="filterGames('${game.category}', event)">
+                  ${game.category.charAt(0).toUpperCase() + game.category.slice(1)}
+                </button>
+                <a href="play.html?id=${game.id}" class="bg-gradient-to-r from-cyan-400 to-indigo-500 text-black font-semibold px-4 py-2 rounded-lg hover:scale-105 transition-transform duration-300 text-sm">
+                  Play Now
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    function renderCategoryButtons() {
+      const btns = document.getElementById('categoryButtons');
+      btns.innerHTML = `
+        <button class="category-btn active px-6 py-3 rounded-full border border-white/20 text-white font-semibold transition-all duration-300 hover:border-cyan-400/50" onclick="filterGames('all', event)">
+          All Games
+        </button>
+        ${allCategories.map(cat => `
+          <button class="category-btn px-6 py-3 rounded-full border border-white/20 text-white font-semibold transition-all duration-300 hover:border-cyan-400/50"
+            onclick="filterGames('${cat}', event)">
+            ${cat.charAt(0).toUpperCase() + cat.slice(1)} <span class="ml-1 text-cyan-400/80">(${categoryCounts[cat]})</span>
+          </button>
+        `).join('')}
+      `;
+    }
+    function renderFeaturedCarousel() {
+      const carousel = document.getElementById('featuredCarousel');
+      const featuredGames = gamesData.filter(game => game.featured);
+      carousel.innerHTML = featuredGames.map(game => `
+        <div class="flex-shrink-0 w-full relative">
+          <div class="bg-gradient-to-br from-white/10 to-white/5 rounded-2xl overflow-hidden border border-white/10">
+            <div class="aspect-video relative overflow-hidden">
+              <img src="${game.image}" alt="${game.title}" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div class="absolute bottom-6 left-6 right-6">
+                <h3 class="text-2xl font-bold mb-2">${game.title}</h3>
+                <p class="text-white/80 mb-4">${game.description}</p>
+                <div class="flex gap-3">
+                  <a href="play.html?id=${game.id}" class="bg-gradient-to-r from-cyan-400 to-indigo-500 text-black font-semibold px-6 py-2 rounded-lg hover:scale-105 transition-transform duration-300">
+                    Play Now
+                  </a>
+                  <button onclick="pinGame('${game.id}')" class="bg-white/20 backdrop-blur-sm text-white font-semibold px-6 py-2 rounded-lg hover:bg-white/30 transition-all duration-300">
+                    <i class='bx bx-pin mr-2'></i>Pin
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      updateCarousel();
+    }
+    function nextSlide() {
+      const featuredGames = gamesData.filter(game => game.featured);
+      if (featuredGames.length === 0) return;
+      currentSlide = (currentSlide + 1) % featuredGames.length;
+      updateCarousel();
+    }
+    function previousSlide() {
+      const featuredGames = gamesData.filter(game => game.featured);
+      if (featuredGames.length === 0) return;
+      currentSlide = (currentSlide - 1 + featuredGames.length) % featuredGames.length;
+      updateCarousel();
+    }
+    function updateCarousel() {
+      const featuredGames = gamesData.filter(game => game.featured);
+      const carousel = document.getElementById('featuredCarousel');
+      carousel.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+    function searchGames() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      filteredGames = gamesData.filter(game => {
+        const matchesSearch = game.title.toLowerCase().includes(searchTerm) ||
+                              game.description.toLowerCase().includes(searchTerm) ||
+                              (game.tags && game.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
+        const matchesCategory = currentFilter === 'all' || game.category === currentFilter;
+        return matchesSearch && matchesCategory;
+      });
+      renderGamesGrid();
+      updateGameCount();
+    }
+    window.filterGames = (category, event) => {
+      currentFilter = category;
+      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      if (event && event.target.classList.contains('category-btn')) {
+        event.target.classList.add('active');
+      } else {
+        let btns = document.querySelectorAll('.category-btn, .category-carousel-btn, .category-badge');
+        btns.forEach(btn => {
+          if (btn.textContent.trim().toLowerCase().startsWith(category.toLowerCase())) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+      document.getElementById('searchInput').value = '';
+      filteredGames = gamesData.filter(game => category === 'all' || game.category === category);
+      renderGamesGrid();
+      updateGameCount();
+      renderCategoriesCarousel();
+    };
+    function updateGameCount() {
+      document.getElementById('gameCount').textContent = `${filteredGames.length} games found`;
+    }
+    function renderCategoriesCarousel() {
+      const carousel = document.getElementById('categoriesCarousel');
+      carousel.innerHTML = allCategories.map(cat => `
+        <button type="button"
+          class="category-carousel-btn px-6 py-2 mr-2 rounded-full border font-semibold border-cyan-400/20 ${currentFilter === cat ? 'active' : ''}"
+          onclick="filterGames('${cat}', event)">
+          <i class='bx bx-category text-cyan-400 mr-1'></i>
+          ${cat.charAt(0).toUpperCase() + cat.slice(1)}
+          <span class="ml-1 text-cyan-300/60">(${categoryCounts[cat]})</span>
+        </button>
+      `).join('');
+    }
+    window.toggleMenu = () => {
+      console.log('Mobile menu toggled');
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await setupAuth();
+      await initializeGames();
+      await generateDailyContent();
+      setInterval(nextSlide, 5000);
+      const carousel = document.getElementById('categoriesCarousel');
+      document.getElementById('catCarouselPrev').onclick = () => {
+        carousel.scrollBy({left: -220, behavior: 'smooth'});
+      };
+      document.getElementById('catCarouselNext').onclick = () => {
+        carousel.scrollBy({left: 220, behavior: 'smooth'});
+      };
+    });
+
+    document.addEventListener('scroll', function() {
+      const navbar = document.querySelector('nav');
+      if (window.scrollY > 100) {
+        navbar.style.backgroundColor = 'rgba(15, 15, 35, 0.95)';
+      } else {
+        navbar.style.backgroundColor = 'rgba(15, 15, 35, 0.8)';
+      }
+    });
+
+    window.nextSlide = nextSlide;
+    window.previousSlide = previousSlide;
+  </script>
+</body>
 </html>
