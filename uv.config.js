@@ -1,10 +1,13 @@
-self.uC = {
-  prefix: "/uv/",
-  encodeUrl: Ultraviolet.codec.plain.encode,
-  decodeUrl: Ultraviolet.codec.plain.decode,
-  handler: "/dist/uv.handler.js",
-  client: "/dist/uv.client.js",
-  bundle: "/dist/uv.bundle.js",
+
+
+
+self.__uv$config = {
+  prefix: "/~/uv/",
+  encodeUrl: Ultraviolet.codec.xor.encode,
+  decodeUrl: Ultraviolet.codec.xor.decode,
+  handler: "https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet/dist/uv.handler.js",
+  client: "https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet/dist/uv.client.js",
+  bundle: "https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet/dist/uv.bundle.js",
   config: "/uv.config.js",
-  sw: "/dist/uv.sw.js",
+  sw: "https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet/dist/uv.sw.js",
 };
