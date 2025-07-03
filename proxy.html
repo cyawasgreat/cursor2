@@ -1133,19 +1133,28 @@
             iframe.style.minHeight = '0';
             iframe.style.height = '100%';
             iframe.style.width = '100%';
-            iframe.onload = () => {
-                try {
-                    const url = iframe.contentWindow.location.href;
-                    if (url === 'about:blank') return;
-                    const decodedUrl = Ultraviolet.codec.plain.decode(url.split('/').pop());
-                    updateTabHistory(tab, decodedUrl);
-                    updateAddressBar(tab);
-                    renderTabs();
-                } catch (e) {
-                    console.error('Error decoding URL:', e);
-                }
-            };
-            iframeContainer.appendChild(iframe);
+           iframe.onload = () => {
+               try {
+                   const url = iframe.contentWindow.location.href;
+                   if (url === 'about:blank') return;
+                   const decodedUrl = Ultraviolet.codec.plain.decode(url.split('/').pop());
+                   updateTabHistory(tab, decodedUrl);
+                   updateAddressBar(tab);
+                   // Try to get the real title from the iframe
+                   let realTitle = null;
+                   try {
+                       realTitle = iframe.contentDocument?.title || iframe.contentWindow?.document?.title;
+                   } catch (e) {}
+                   if (realTitle && !tab.customTitle) {
+                       tab.title = realTitle;
+                       renderTabs();
+                   } else {
+                       renderTabs();
+                   }
+               } catch (e) {
+                   console.error('Error decoding URL:', e);
+               }
+           };            iframeContainer.appendChild(iframe);
         }
 
         iframe.classList.remove('hidden');
