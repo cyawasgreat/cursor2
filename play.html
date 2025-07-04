@@ -232,7 +232,7 @@
     // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyC4ilHYP1T-kdXbWPoHJHhD2aj0pNWmMec",
-      authDomain: "carbon-services.firebaseapp.com",
+      authDomain: "carbon-services.github.io",
       projectId: "carbon-services",
       storageBucket: "carbon-services.firebasestorage.app",
       messagingSenderId: "288385472070",
@@ -1088,7 +1088,8 @@
           setButtonActive(document.getElementById('likeBtn'), lists.likedGames?.includes(currentGameId));
           setButtonActive(document.getElementById('favBtn'), lists.favoriteGames?.includes(currentGameId), 'bg-pink-600/80');
           setButtonActive(document.getElementById('playlistBtn'), lists.playlist?.includes(currentGameId), 'bg-yellow-400/80');
-          document.getElementById('likeBtn').onclick = async () => {
+          document.getElementById('likeBtn').onclick = asy
+          nc () => {
             const isLiked = lists.likedGames?.includes(currentGameId);
             await updateUserArray(user.uid, 'likedGames', currentGameId, !isLiked);
             lists = await getUserGameLists(user.uid);
