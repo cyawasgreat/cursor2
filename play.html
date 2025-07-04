@@ -251,7 +251,7 @@
 
     function googleSignIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithRedirect(provider)
+      auth.signInWithRedirect(auth, provider)
         .catch((error) => {
           console.log(error)
           document.getElementById('loginError').innerText = error.message;
