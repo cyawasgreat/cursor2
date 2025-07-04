@@ -269,7 +269,7 @@
     let tagCounts = {};
 
     async function loadGamesData() {
-      const res = await fetch('games.json');
+      const res = await fetch('js/games.json');
       gamesData = await res.json();
       window.gamesData = gamesData;
       // Build category and tag counts for tag modal
