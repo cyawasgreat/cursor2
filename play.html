@@ -251,7 +251,7 @@
 
     function googleSignIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
+      auth.signInWithRedirect(provider)
         .catch((error) => {
           document.getElementById('loginError').innerText = error.message;
           document.getElementById('loginError').classList.remove('hidden');
