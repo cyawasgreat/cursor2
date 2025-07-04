@@ -253,6 +253,7 @@
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithRedirect(provider)
         .catch((error) => {
+          console.log(error)
           document.getElementById('loginError').innerText = error.message;
           document.getElementById('loginError').classList.remove('hidden');
         });
