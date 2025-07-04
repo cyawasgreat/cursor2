@@ -251,7 +251,7 @@
 
     function googleSignIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithRedirect(auth, provider)
+      auth.signInWithPopup(provider)
         .catch((error) => {
           console.log(error)
           document.getElementById('loginError').innerText = error.message;
@@ -532,16 +532,14 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       showPreloader();
- //     document.getElementById('gameFrameContainer').classList.add('hidden');
-  //    document.getElementById('gameInfoHolder').classList.add('hidden');
-   //   document.getElementById('loginScreen').classList.remove('hidden');
-      //auth.onAuthStateChanged
-        
-        (async (user) => {
+      document.getElementById('gameFrameContainer').classList.add('hidden');
+      document.getElementById('gameInfoHolder').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      auth.onAuthStateChanged(async (user) => {
         renderUserSection(user);
         if (!user) {
           hidePreloader();
-     //     document.getElementById('loginScreen').classList.remove('hidden');
+          document.getElementById('loginScreen').classList.remove('hidden');
           document.getElementById('gameFrameContainer').classList.add('hidden');
           document.getElementById('gameInfoHolder').classList.add('hidden');
           return;
