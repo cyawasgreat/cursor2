@@ -251,7 +251,7 @@
 
     function googleSignIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithRedirect(auth, provider)
+      auth.signInWithPopup(auth, provider)
         .catch((error) => {
           console.log(error)
           document.getElementById('loginError').innerText = error.message;
@@ -269,7 +269,7 @@
     let tagCounts = {};
 
     async function loadGamesData() {
-      const res = await fetch('js/games.json');
+      const res = await fetch('games.json');
       gamesData = await res.json();
       window.gamesData = gamesData;
       // Build category and tag counts for tag modal
