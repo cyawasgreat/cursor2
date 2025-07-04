@@ -1088,8 +1088,7 @@
           setButtonActive(document.getElementById('likeBtn'), lists.likedGames?.includes(currentGameId));
           setButtonActive(document.getElementById('favBtn'), lists.favoriteGames?.includes(currentGameId), 'bg-pink-600/80');
           setButtonActive(document.getElementById('playlistBtn'), lists.playlist?.includes(currentGameId), 'bg-yellow-400/80');
-          document.getElementById('likeBtn').onclick = asy
-          nc () => {
+          document.getElementById('likeBtn').onclick = async () => {
             const isLiked = lists.likedGames?.includes(currentGameId);
             await updateUserArray(user.uid, 'likedGames', currentGameId, !isLiked);
             lists = await getUserGameLists(user.uid);
