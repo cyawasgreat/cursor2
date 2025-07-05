@@ -27,19 +27,64 @@ async function loadSettings() {
 
 // Setup protocol handlers for carbon:// URLs
 function setupProtocolHandlers() {
-    // Handle carbon://games
+    console.log('Setting up carbon:// protocol handlers');
+    
+    // Handle carbon:// protocol in navigation
     chrome.webRequest.onBeforeRequest.addListener(
         (details) => {
-            if (details.url.startsWith('carbon://games')) {
-                return { redirectUrl: chrome.runtime.getURL('games.html') };
+            console.log('Request intercepted:', details.url);
+            
+            if (details.url.includes('carbon://games') || details.url.includes('carbon:/games')) {
+                const gamesUrl = chrome.runtime.getURL('games.html');
+                console.log('Redirecting to games:', gamesUrl);
+                return { redirectUrl: gamesUrl };
             }
-            if (details.url.startsWith('carbon://settings')) {
-                return { redirectUrl: chrome.runtime.getURL('settings.html') };
+            if (details.url.includes('carbon://settings') || details.url.includes('carbon:/settings')) {
+                const settingsUrl = chrome.runtime.getURL('settings.html');
+                console.log('Redirecting to settings:', settingsUrl);
+                return { redirectUrl: settingsUrl };
             }
         },
-        { urls: ['*://carbon/*'] },
+        { urls: ['<all_urls>'] },
         ['blocking']
     );
+    
+    // Also handle through declarative net request
+    if (chrome.declarativeNetRequest) {
+        chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [100, 101],
+            addRules: [
+                {
+                    id: 100,
+                    priority: 1,
+                    action: {
+                        type: 'redirect',
+                        redirect: { url: chrome.runtime.getURL('games.html') }
+                    },
+                    condition: {
+                        urlFilter: '*carbon://games*',
+                        resourceTypes: ['main_frame']
+                    }
+                },
+                {
+                    id: 101,
+                    priority: 1,
+                    action: {
+                        type: 'redirect',
+                        redirect: { url: chrome.runtime.getURL('settings.html') }
+                    },
+                    condition: {
+                        urlFilter: '*carbon://settings*',
+                        resourceTypes: ['main_frame']
+                    }
+                }
+            ]
+        }).then(() => {
+            console.log('Carbon protocol redirect rules created');
+        }).catch(error => {
+            console.error('Failed to create protocol redirect rules:', error);
+        });
+    }
 }
 
 // Setup context menus
@@ -99,17 +144,25 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 // Handle messages from popup and content scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log('Background received message:', message.action);
+    
     switch (message.action) {
         case 'updateUserAgent':
             updateUserAgent(message.userAgent);
             break;
+        case 'resetUserAgent':
+            resetUserAgent();
+            break;
+        case 'updateUVConfig':
+            updateUVConfigGlobally(message.settings);
+            break;
         case 'applyTheme':
-            applyTheme(message.theme);
+            applyTheme(message.theme, message.themeName);
             break;
         case 'toggleStealth':
             toggleStealthMode(message.enabled, message.settings);
             break;
-        case 'executePackage':
+        case 'executePanic':
             executePanicAction(message.panicSettings);
             break;
         case 'updatePanicKey':
@@ -118,6 +171,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         case 'getSettings':
             sendResponse(extensionSettings);
+            return true; // Keep message channel open for async response
+        case 'updateSettings':
+            extensionSettings = { ...extensionSettings, ...message.settings };
+            chrome.storage.local.set({ extensionSettings });
             break;
     }
 });
@@ -125,6 +182,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Update user agent for all requests
 function updateUserAgent(userAgent) {
     currentUserAgent = userAgent;
+    console.log('Setting user agent to:', userAgent);
     
     // Modify user agent header for all requests
     if (chrome.declarativeNetRequest) {
@@ -146,18 +204,60 @@ function updateUserAgent(userAgent) {
                     resourceTypes: ['main_frame', 'sub_frame', 'xmlhttprequest']
                 }
             }]
+        }).then(() => {
+            console.log('User agent rule updated successfully');
+        }).catch(error => {
+            console.error('Failed to update user agent rule:', error);
+        });
+    }
+}
+
+// Reset user agent to default
+function resetUserAgent() {
+    currentUserAgent = null;
+    console.log('Resetting user agent to default');
+    
+    if (chrome.declarativeNetRequest) {
+        chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [1]
+        }).then(() => {
+            console.log('User agent rule removed successfully');
+        }).catch(error => {
+            console.error('Failed to remove user agent rule:', error);
         });
     }
 }
 
 // Apply theme to pages
-function applyTheme(theme) {
+function applyTheme(theme, themeName) {
+    console.log('Applying theme:', themeName, theme);
+    
     chrome.tabs.query({}, (tabs) => {
         tabs.forEach(tab => {
             chrome.tabs.sendMessage(tab.id, {
                 action: 'applyTheme',
-                theme: theme
-            });
+                theme: theme,
+                themeName: themeName
+            }).catch(() => {}); // Ignore errors for tabs that can't receive messages
+        });
+    });
+}
+
+// Update UV config globally
+function updateUVConfigGlobally(settings) {
+    console.log('Updating UV config globally:', settings);
+    
+    // Store in extension settings
+    extensionSettings.uvConfig = settings;
+    chrome.storage.local.set({ extensionSettings });
+    
+    // Send to all tabs
+    chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => {
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'updateUVConfig',
+                settings: settings
+            }).catch(() => {}); // Ignore errors
         });
     });
 }
@@ -219,6 +319,8 @@ function disableStealthFeatures() {
 
 // Setup analytics blocking
 function setupAnalyticsBlocking() {
+    console.log('Setting up analytics blocking');
+    
     const analyticsUrls = [
         '*://www.google-analytics.com/*',
         '*://analytics.google.com/*',
@@ -227,51 +329,78 @@ function setupAnalyticsBlocking() {
         '*://connect.facebook.net/*',
         '*://hotjar.com/*',
         '*://fullstory.com/*',
-        '*://mixpanel.com/*'
+        '*://mixpanel.com/*',
+        '*://doubleclick.net/*',
+        '*://googlesyndication.com/*',
+        '*://amazon-adsystem.com/*'
     ];
 
     chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [2],
-        addRules: [{
-            id: 2,
+        addRules: analyticsUrls.map((url, index) => ({
+            id: 2 + index,
             priority: 1,
             action: { type: 'block' },
             condition: {
-                urlFilter: analyticsUrls.join('|'),
-                resourceTypes: ['script', 'xmlhttprequest', 'image']
+                urlFilter: url,
+                resourceTypes: ['script', 'xmlhttprequest', 'image', 'sub_frame']
             }
-        }]
+        }))
+    }).then(() => {
+        console.log('Analytics blocking rules updated successfully');
+    }).catch(error => {
+        console.error('Failed to update analytics blocking rules:', error);
     });
 }
 
 // Remove analytics blocking
 function removeAnalyticsBlocking() {
+    console.log('Removing analytics blocking');
+    
+    // Remove all analytics blocking rules (IDs 2-12)
+    const ruleIds = Array.from({length: 11}, (_, i) => 2 + i);
+    
     chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: [2]
+        removeRuleIds: ruleIds
+    }).then(() => {
+        console.log('Analytics blocking rules removed successfully');
+    }).catch(error => {
+        console.error('Failed to remove analytics blocking rules:', error);
     });
 }
 
 // Execute panic action
 function executePanicAction(panicSettings) {
     const settings = panicSettings || extensionSettings.panic;
+    console.log('Executing panic action:', settings.action);
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const activeTab = tabs[0];
-        if (!activeTab) return;
+        if (!activeTab) {
+            console.error('No active tab found for panic action');
+            return;
+        }
 
         switch (settings.action) {
             case 'close':
+                console.log('Closing tab:', activeTab.id);
                 chrome.tabs.remove(activeTab.id);
                 break;
             case 'redirect':
-                chrome.tabs.update(activeTab.id, { url: settings.redirectUrl || 'https://google.com' });
+                const redirectUrl = settings.redirectUrl || 'https://google.com';
+                console.log('Redirecting to:', redirectUrl);
+                chrome.tabs.update(activeTab.id, { url: redirectUrl });
                 break;
             case 'minimize':
+                console.log('Minimizing window:', activeTab.windowId);
                 chrome.windows.update(activeTab.windowId, { state: 'minimized' });
                 break;
             case 'hide':
+                console.log('Hiding content in tab:', activeTab.id);
                 chrome.tabs.sendMessage(activeTab.id, { action: 'hideAllContent' });
                 break;
+            default:
+                console.error('Unknown panic action:', settings.action);
         }
     });
 }

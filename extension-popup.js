@@ -191,11 +191,13 @@ function setupEventListeners() {
 
     // Quick actions
     document.getElementById('openGames').addEventListener('click', () => {
-        chrome.tabs.create({ url: 'carbon://games' });
+        console.log('Opening games page');
+        chrome.tabs.create({ url: chrome.runtime.getURL('games.html') });
     });
 
     document.getElementById('openSettings').addEventListener('click', () => {
-        chrome.tabs.create({ url: 'carbon://settings' });
+        console.log('Opening settings page');
+        chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
     });
 
     document.getElementById('toggleStealth').addEventListener('click', () => {
@@ -359,13 +361,22 @@ async function saveSettings() {
 // Update UV config injection
 async function updateUVConfig() {
     try {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tabs[0]) {
-            chrome.tabs.sendMessage(tabs[0].id, {
+        // Send to background script
+        chrome.runtime.sendMessage({
+            action: 'updateUVConfig',
+            settings: extensionSettings.uvConfig
+        });
+        
+        // Update all tabs
+        const tabs = await chrome.tabs.query({});
+        tabs.forEach(tab => {
+            chrome.tabs.sendMessage(tab.id, {
                 action: 'updateUVConfig',
                 settings: extensionSettings.uvConfig
-            });
-        }
+            }).catch(() => {}); // Ignore errors for tabs that can't receive messages
+        });
+        
+        console.log('UV Config updated:', extensionSettings.uvConfig);
     } catch (error) {
         console.error('Error updating UV config:', error);
     }
@@ -383,6 +394,13 @@ async function updateUserAgent() {
             action: 'updateUserAgent',
             userAgent: ua
         });
+        console.log('User agent updated to:', ua);
+    } else {
+        // Reset to default
+        chrome.runtime.sendMessage({
+            action: 'resetUserAgent'
+        });
+        console.log('User agent reset to default');
     }
 }
 
@@ -390,28 +408,60 @@ async function updateUserAgent() {
 async function applyTheme() {
     const theme = themes[extensionSettings.theme];
     if (theme) {
+        // Send to background script
         chrome.runtime.sendMessage({
             action: 'applyTheme',
-            theme: theme
+            theme: theme,
+            themeName: extensionSettings.theme
         });
+        
+        // Apply to all tabs
+        const tabs = await chrome.tabs.query({});
+        tabs.forEach(tab => {
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'applyTheme',
+                theme: theme,
+                themeName: extensionSettings.theme
+            }).catch(() => {}); // Ignore errors
+        });
+        
+        console.log('Theme applied:', extensionSettings.theme, theme);
     }
 }
 
 // Toggle stealth mode
 async function toggleStealthMode() {
+    // Send to background script
     chrome.runtime.sendMessage({
         action: 'toggleStealth',
         enabled: extensionSettings.stealth.enabled,
         settings: extensionSettings.stealth
     });
+    
+    // Update all tabs
+    const tabs = await chrome.tabs.query({});
+    tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {
+            action: extensionSettings.stealth.enabled ? 'enableStealth' : 'disableStealth',
+            settings: extensionSettings.stealth
+        }).catch(() => {}); // Ignore errors
+    });
+    
+    console.log('Stealth mode toggled:', extensionSettings.stealth.enabled);
 }
 
 // Execute panic action
 async function executePanicAction() {
+    console.log('Executing panic action:', extensionSettings.panic.action);
+    
+    // Send to background script
     chrome.runtime.sendMessage({
-        action: 'executepanic',
+        action: 'executePanic',
         panicSettings: extensionSettings.panic
     });
+    
+    // Close popup after panic
+    window.close();
 }
 
 // Update panic key listener
