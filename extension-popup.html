@@ -15,6 +15,7 @@
             height: 600px; 
             overflow-y: auto;
             font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
         }
         .toggle-switch {
             position: relative;
@@ -51,6 +52,7 @@
         }
         input:checked + .slider {
             background-color: #06b6d4;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
         }
         input:checked + .slider:before {
             transform: translateX(20px);
@@ -58,6 +60,59 @@
         .section-divider {
             border-bottom: 1px solid #374151;
             margin: 16px 0;
+        }
+        
+        /* Theme button animations */
+        .theme-btn {
+            transition: all 0.3s ease;
+            transform: scale(1);
+        }
+        .theme-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .theme-btn.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+        
+        /* Button hover effects */
+        button {
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        
+        /* Notification animations */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        /* Section animations */
+        section {
+            transition: all 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Loading animation */
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes pulse {
+            from { opacity: 0.6; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -313,6 +368,45 @@
                         <input type="checkbox" id="confirmClose">
                         <span class="slider"></span>
                     </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Extension Control Center -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="bx bx-command text-yellow-400"></i>
+                <h2 class="text-lg font-semibold">Control Center</h2>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <button id="testAllFeatures" class="bg-yellow-600 hover:bg-yellow-500 p-2 rounded text-sm font-medium transition-colors">
+                    <i class="bx bx-test-tube block mb-1"></i>
+                    Test All
+                </button>
+                <button id="resetExtension" class="bg-red-600 hover:bg-red-500 p-2 rounded text-sm font-medium transition-colors">
+                    <i class="bx bx-reset block mb-1"></i>
+                    Reset
+                </button>
+            </div>
+            
+            <!-- Feature Status -->
+            <div class="text-xs space-y-1 mb-3">
+                <div class="flex justify-between">
+                    <span>UV Dark Mode:</span>
+                    <span id="statusUVDark" class="text-green-400">●</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>User Agent:</span>
+                    <span id="statusUserAgent" class="text-cyan-400">default</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Current Theme:</span>
+                    <span id="statusTheme" class="text-purple-400">dark</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Stealth Mode:</span>
+                    <span id="statusStealth" class="text-red-400">●</span>
                 </div>
             </div>
         </section>
