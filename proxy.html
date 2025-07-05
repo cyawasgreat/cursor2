@@ -396,6 +396,36 @@
                     id="dropdown-menu"
                     class="hidden absolute right-0 top-10 bg-overlay border border-highlight-med rounded-lg shadow-lg z-50 py-2 min-w-64"
                   >
+                    <!-- Carbon Extensions Section -->
+                    <div class="px-3 py-1 text-xs font-medium text-muted uppercase tracking-wide border-b border-highlight-med mb-2">
+                      Carbon Extensions
+                    </div>
+                    <button
+                      id="carbon-games-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                      onclick="openCarbonGames()"
+                    >
+                      <i class="bx bx-game text-foam"></i>
+                      <span>Games Hub</span>
+                      <span class="ml-auto text-xs text-muted">carbon://games</span>
+                    </button>
+                    <button
+                      id="carbon-settings-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                      onclick="openCarbonSettings()"
+                    >
+                      <i class="bx bx-cog text-iris"></i>
+                      <span>Advanced Settings</span>
+                      <span class="ml-auto text-xs text-muted">carbon://settings</span>
+                    </button>
+                    <button
+                      id="extension-popup-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                      onclick="openExtensionPopup()"
+                    >
+                      <i class="bx bx-extension text-pine"></i>
+                      <span>Extension Control</span>
+                    </button>
                     <!-- Tab Management -->
                     <div class="px-3 py-1 text-xs font-medium text-muted uppercase tracking-wide border-b border-highlight-med mb-2">
                       Tab Management
@@ -496,6 +526,181 @@
           
       </div> <!-- End Main Content Wrapper -->
     </div> <!-- End Browser Window -->
+
+      <!-- Extension Integration Scripts -->
+      <script>
+        // Carbon Extension Integration
+        function openCarbonGames() {
+          openInCurrentTab('games.html');
+        }
+        
+        function openCarbonSettings() {
+          openInCurrentTab('settings.html');
+        }
+        
+        function openExtensionPopup() {
+          // Create a modal overlay for extension popup
+          const modal = document.createElement('div');
+          modal.id = 'extension-modal';
+          modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]';
+          
+          const popup = document.createElement('iframe');
+          popup.src = 'extension-popup.html';
+          popup.className = 'bg-white rounded-lg';
+          popup.style.width = '400px';
+          popup.style.height = '600px';
+          popup.style.border = 'none';
+          
+          modal.appendChild(popup);
+          
+          // Close modal when clicking outside
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              modal.remove();
+            }
+          });
+          
+          document.body.appendChild(modal);
+        }
+        
+        // Enhanced close prevention
+        let closePreventionEnabled = false;
+        let confirmOnClose = false;
+        
+        function updateClosePrevention(prevent, confirm) {
+          closePreventionEnabled = prevent;
+          confirmOnClose = confirm;
+          
+          if (prevent || confirm) {
+            window.addEventListener('beforeunload', closePreventionHandler);
+          } else {
+            window.removeEventListener('beforeunload', closePreventionHandler);
+          }
+        }
+        
+        function closePreventionHandler(event) {
+          if (closePreventionEnabled) {
+            event.preventDefault();
+            event.returnValue = '';
+            return '';
+          }
+          
+          if (confirmOnClose) {
+            const message = 'Are you sure you want to leave Carbon Browser?';
+            event.returnValue = message;
+            return message;
+          }
+        }
+        
+        // Theme management with Firebase sync
+        async function applyTheme(themeName) {
+          const themes = {
+            dark: {
+              base: "#191724",
+              surface: "#1f1d2e", 
+              overlay: "#26233a",
+              text: "#e0def4",
+              foam: "#9ccfd8"
+            },
+            light: {
+              base: "#ffffff",
+              surface: "#f8f9fa",
+              overlay: "#e9ecef",
+              text: "#212529", 
+              foam: "#0d6efd"
+            },
+            cappuccino: {
+              base: "#2d1b14",
+              surface: "#3c2a1e",
+              overlay: "#4a2c1a",
+              text: "#f4e4bc",
+              foam: "#d4a574"
+            },
+            default: {
+              base: "#191724",
+              surface: "#1f1d2e",
+              overlay: "#26233a", 
+              text: "#e0def4",
+              foam: "#9ccfd8"
+            }
+          };
+          
+          const theme = themes[themeName] || themes.default;
+          
+          // Update CSS custom properties
+          document.documentElement.style.setProperty('--color-base', theme.base);
+          document.documentElement.style.setProperty('--color-surface', theme.surface);
+          document.documentElement.style.setProperty('--color-overlay', theme.overlay);
+          document.documentElement.style.setProperty('--color-text', theme.text);
+          document.documentElement.style.setProperty('--color-foam', theme.foam);
+          
+          // Save to localStorage
+          localStorage.setItem('carbonTheme', themeName);
+          
+          // Sync with Firebase if available
+          try {
+            if (window.firebaseApp && window.auth?.currentUser) {
+              const db = firebase.firestore();
+              await db.collection('userSettings').doc(window.auth.currentUser.uid).set({
+                theme: themeName
+              }, { merge: true });
+            }
+          } catch (error) {
+            console.log('Theme sync skipped - Firebase not available');
+          }
+        }
+        
+        // Load saved theme
+        function loadSavedTheme() {
+          const saved = localStorage.getItem('carbonTheme') || 'default';
+          applyTheme(saved);
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+          loadSavedTheme();
+          
+          // Enable close prevention by default
+          updateClosePrevention(false, true);
+        });
+        
+        // Panic mode functionality
+        let panicKeyEnabled = true;
+        let panicKey = 'p';
+        let panicModifier = 'ctrl';
+        
+        document.addEventListener('keydown', (event) => {
+          if (!panicKeyEnabled) return;
+          
+          let modifierPressed = false;
+          switch (panicModifier) {
+            case 'ctrl':
+              modifierPressed = event.ctrlKey && !event.shiftKey && !event.altKey;
+              break;
+            case 'alt': 
+              modifierPressed = event.altKey && !event.ctrlKey && !event.shiftKey;
+              break;
+            case 'shift':
+              modifierPressed = event.shiftKey && !event.ctrlKey && !event.altKey;
+              break;
+            case 'ctrl+shift':
+              modifierPressed = event.ctrlKey && event.shiftKey && !event.altKey;
+              break;
+          }
+          
+          const keyPressed = event.key.toLowerCase() === panicKey.toLowerCase();
+          
+          if (modifierPressed && keyPressed) {
+            event.preventDefault();
+            executePanicMode();
+          }
+        });
+        
+        function executePanicMode() {
+          // Close current tab/window
+          window.location.href = 'https://google.com';
+        }
+      </script>
 
       <!-- History Modal -->
       <div

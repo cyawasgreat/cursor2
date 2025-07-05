@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "regexSubstitution": "chrome-extension://\\1/games.html"
+      }
+    },
+    "condition": {
+      "regexFilter": "^carbon://games.*",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "regexSubstitution": "chrome-extension://\\1/settings.html"
+      }
+    },
+    "condition": {
+      "regexFilter": "^carbon://settings.*",
+      "resourceTypes": ["main_frame"]
+    }
+  }
+]
