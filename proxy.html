@@ -100,17 +100,19 @@
       
       /* Browser-style vertical tabs */
       .vertical-tabs-container {
-        position: absolute;
+        position: fixed;
         left: 0;
         top: 0;
         bottom: 0;
         width: 280px;
         background: #1f1d2e;
         border-right: 1px solid #26233a;
-        z-index: 100;
+        z-index: 1000;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
       }
       
       .vertical-tabs-container.open {
@@ -118,12 +120,12 @@
       }
       
       .content-with-vertical-tabs {
-        margin-left: 280px;
+        margin-left: 0;
         transition: margin-left 0.3s ease;
       }
       
-      .content-with-vertical-tabs.collapsed {
-        margin-left: 0;
+      .content-with-vertical-tabs.with-vertical-tabs {
+        margin-left: 280px;
       }
       
       /* Browser-style scrollbar */
@@ -180,6 +182,45 @@
               </h3>
             </div>
             <div id="vertical-tabs-list" class="overflow-y-auto flex-1 bg-overlay/50"></div>
+            <!-- Vertical Tab Controls -->
+            <div id="vertical-tab-controls" class="p-4 border-t border-highlight-med bg-surface hidden">
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  id="vertical-new-tab-btn"
+                  class="w-full p-2 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center gap-2"
+                  title="New Tab (Ctrl+T)"
+                >
+                  <i class="bx bx-plus text-sm"></i>
+                  <span class="text-xs">New Tab</span>
+                </button>
+                <button
+                  id="vertical-hide-tab-bar-toggle"
+                  class="w-full p-2 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center gap-2"
+                  title="Hide Tab Bar"
+                >
+                  <i class="bx bx-show text-sm"></i>
+                  <span class="text-xs">Hide Bar</span>
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  id="vertical-tab-groups-toggle"
+                  class="w-full p-2 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center gap-2"
+                  title="Manage Tab Groups"
+                >
+                  <i class="bx bx-collection text-sm"></i>
+                  <span class="text-xs">Groups</span>
+                </button>
+                <button
+                  id="vertical-tabs-layout-toggle"
+                  class="w-full p-2 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center gap-2"
+                  title="Hide Vertical Tabs"
+                >
+                  <i class="bx bx-sidebar text-sm rotate-180"></i>
+                  <span class="text-xs">Hide Vertical</span>
+                </button>
+              </div>
+            </div>
           </div>
           <!-- Main Content Wrapper -->
           <div id="main-content-wrapper" class="content-with-vertical-tabs collapsed">
@@ -194,7 +235,7 @@
             ></div>
             
             <!-- Tab Controls -->
-            <div class="flex items-center gap-1 px-2 pb-1">
+            <div id="horizontal-tab-controls" class="flex items-center gap-1 px-2 pb-1">
               <button
                 id="new-tab-btn"
                 class="w-8 h-8 rounded-md bg-transparent hover:bg-highlight-med text-muted hover:text-text transition-all flex items-center justify-center"
@@ -407,7 +448,14 @@
                       class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
                     >
                       <i class="bx bx-history text-iris"></i>
-                      <span>Show History</span>
+                      <span>Show Tab History</span>
+                    </button>
+                    <button
+                      id="global-history-btn"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-text hover:bg-highlight-med transition-colors text-sm"
+                    >
+                      <i class="bx bx-time text-iris"></i>
+                      <span>Browse All History</span>
                     </button>
                     <button
                       id="clear-history-btn"
@@ -806,14 +854,14 @@
       // --- Tab Groups Logic ---
       let tabGroups = [];
       let groupIdCounter = 1;
-      function createTab(url = "") {
+      function createTab(url = "carbon://newtab") {
         const id = "tab-" + tabIdCounter++;
         return {
           id,
-          title: url ? url : "New Tab",
+          title: url === "carbon://newtab" ? "New Tab" : (url ? url : "New Tab"),
           url,
-          history: url ? [url] : [],
-          pointer: url ? 0 : -1,
+          history: url ? [url] : ["carbon://newtab"],
+          pointer: url ? 0 : 0,
           pinned: false,
           locked: false,
           color: null,
@@ -1109,8 +1157,14 @@
         document.getElementById("tabs-bar").innerHTML = "";
       }
       function updateAddressBar(tab) {
-        document.getElementById("address-bar-input").value =
-          tab.history[tab.pointer] || "";
+        let url = tab.history[tab.pointer] || "";
+        
+        // Keep carbon:// URLs in the address bar instead of showing the actual HTML file
+        if (url.startsWith("carbon://")) {
+          document.getElementById("address-bar-input").value = url;
+        } else {
+          document.getElementById("address-bar-input").value = url;
+        }
       }
       function renderTabContent(tab, forceReload = false) {
         const iframeContainer = document.getElementById("iframe-container");
@@ -1136,6 +1190,22 @@
                try {
                    const url = iframe.contentWindow.location.href;
                    if (url === 'about:blank') return;
+                   
+                   // Don't update history for carbon:// URLs - they're already correct
+                   if (tab.history[tab.pointer] && tab.history[tab.pointer].startsWith('carbon://')) {
+                       // Try to get the real title from the iframe for carbon pages
+                       let realTitle = null;
+                       try {
+                           realTitle = iframe.contentDocument?.title || iframe.contentWindow?.document?.title;
+                       } catch (e) {}
+                       if (realTitle && !tab.customTitle && realTitle !== 'New Tab - Carbon' && realTitle !== 'History - Carbon') {
+                           tab.title = realTitle;
+                           renderTabs();
+                       }
+                       return;
+                   }
+                   
+                   // For regular URLs, decode and update normally
                    const decodedUrl = Ultraviolet.codec.plain.decode(url.split('/').pop());
                    updateTabHistory(tab, decodedUrl);
                    updateAddressBar(tab);
@@ -1154,6 +1224,18 @@
                    console.error('Error decoding URL:', e);
                }
            };            iframeContainer.appendChild(iframe);
+            
+            // Notify new iframe about vertical tabs state
+            setTimeout(() => {
+              try {
+                iframe.contentWindow.postMessage({
+                  type: 'carbon-vertical-tabs-state',
+                  enabled: verticalTabsMode
+                }, '*');
+              } catch (e) {
+                // Ignore cross-origin errors
+              }
+            }, 500);
         }
 
         iframe.classList.remove('hidden');
@@ -1170,6 +1252,18 @@
         }
         let url = tab.history[tab.pointer];
         if (iframe.dataset.loadedUrl !== url || forceReload) {
+            // Handle carbon:// protocol URLs
+            if (url.startsWith("carbon://")) {
+              if (url === "carbon://newtab") {
+                iframe.src = "/newtab.html";
+                iframe.dataset.loadedUrl = url;
+              } else if (url === "carbon://history") {
+                iframe.src = "/history.html";
+                iframe.dataset.loadedUrl = url;
+              }
+              return;
+            }
+            
             let search = getCurrentSearchEngine();
             makeURLAndProxied(url, search).then((src) => {
               iframe.src = src;
@@ -1192,7 +1286,7 @@
         updateAddressBar(tab);
         renderTabContent(tab);
       }
-      function addTab(url = "") {
+      function addTab(url = "carbon://newtab") {
         const tab = createTab(url);
         tabs.push(tab);
         setActiveTab(tab.id);
@@ -1504,6 +1598,23 @@
           return;
         }
         
+        // Don't allow closing the last tab
+        if (tabs.length <= 1) {
+          // Instead of closing, navigate to new tab page
+          const lastTab = tabs[0];
+          if (lastTab) {
+            lastTab.url = "carbon://newtab";
+            lastTab.title = "New Tab";
+            lastTab.history = ["carbon://newtab"];
+            lastTab.pointer = 0;
+            lastTab.customTitle = null;
+            updateAddressBar(lastTab);
+            renderTabContent(lastTab);
+            renderTabs();
+          }
+          return;
+        }
+        
         const idx = tabs.findIndex((t) => t.id === tabId);
         if (idx !== -1) {
           takeTabsSnapshot();
@@ -1534,7 +1645,62 @@
         tab.url = url;
         // Only update title if no custom title is set
         if (!tab.customTitle) {
-          tab.title = url ? url : "New Tab";
+          tab.title = url === "carbon://newtab" ? "New Tab" : (url === "carbon://history" ? "History" : (url ? url : "New Tab"));
+        }
+        
+        // Add to global history (but not carbon:// URLs)
+        addToGlobalHistory(url, tab.title);
+      }
+      
+      function addToGlobalHistory(url, title = '') {
+        // Don't add carbon:// URLs to global history
+        if (url.startsWith('carbon://')) return;
+        
+        try {
+          // Get existing history
+          const history = JSON.parse(localStorage.getItem('carbon-history') || '[]');
+          
+          const item = {
+            id: Date.now() + Math.random(),
+            url: url,
+            title: title || url,
+            timestamp: new Date().toISOString(),
+            visits: 1
+          };
+          
+          // Check if URL already exists
+          const existingIndex = history.findIndex(h => h.url === url);
+          if (existingIndex !== -1) {
+            history[existingIndex].timestamp = item.timestamp;
+            history[existingIndex].visits++;
+            history[existingIndex].title = title || history[existingIndex].title;
+          } else {
+            history.unshift(item);
+          }
+          
+          // Limit history to 1000 items
+          if (history.length > 1000) {
+            history.splice(1000);
+          }
+          
+          // Save history
+          localStorage.setItem('carbon-history', JSON.stringify(history));
+          
+          // Send to history page if it's open
+          const historyIframes = document.querySelectorAll('iframe[src="/history.html"]');
+          historyIframes.forEach(iframe => {
+            try {
+              iframe.contentWindow.postMessage({
+                type: 'carbon-add-history',
+                url: url,
+                title: title
+              }, '*');
+            } catch (e) {
+              // Ignore cross-origin errors
+            }
+          });
+        } catch (e) {
+          console.error('Error adding to global history:', e);
         }
       }
       function getActiveTab() {
@@ -1551,24 +1717,44 @@
       
       function toggleVerticalTabs() {
         verticalTabsMode = !verticalTabsMode;
+        
         const verticalContainer = document.getElementById("vertical-tabs-container");
+        const verticalControls = document.getElementById("vertical-tab-controls");
+        const horizontalControls = document.getElementById("horizontal-tab-controls");
         const mainContent = document.getElementById("main-content-wrapper");
         const toggleBtn = document.getElementById("tabs-layout-toggle");
+        const verticalToggleBtn = document.getElementById("vertical-tabs-layout-toggle");
         
         if (verticalTabsMode) {
           verticalContainer.classList.add("open");
-          mainContent.classList.remove("collapsed");
+          verticalControls.classList.remove("hidden");
+          horizontalControls.classList.add("hidden");
+          mainContent.classList.add("with-vertical-tabs");
           toggleBtn.innerHTML = '<i class="bx bx-sidebar text-lg rotate-180"></i>';
           toggleBtn.title = "Hide Vertical Tabs";
+          if (verticalToggleBtn) {
+            verticalToggleBtn.innerHTML = '<i class="bx bx-sidebar text-sm rotate-180"></i><span class="text-xs">Hide Vertical</span>';
+          }
+          
+          // Attach event listeners for vertical tab controls
+          setTimeout(attachVerticalTabListeners, 150);
         } else {
           verticalContainer.classList.remove("open");
-          mainContent.classList.add("collapsed");
+          verticalControls.classList.add("hidden");
+          horizontalControls.classList.remove("hidden");
+          mainContent.classList.remove("with-vertical-tabs");
           toggleBtn.innerHTML = '<i class="bx bx-sidebar text-lg"></i>';
           toggleBtn.title = "Show Vertical Tabs";
+          if (verticalToggleBtn) {
+            verticalToggleBtn.innerHTML = '<i class="bx bx-sidebar text-sm"></i><span class="text-xs">Show Vertical</span>';
+          }
         }
         
         renderTabs();
         localStorage.setItem("vertical-tabs-mode", verticalTabsMode);
+        
+        // Notify all iframes about vertical tabs state change
+        setTimeout(notifyIframesVerticalTabsState, 200);
       }
       
       let tabBarHidden = localStorage.getItem("tab-bar-hidden") === "true";
@@ -1577,15 +1763,24 @@
         tabBarHidden = !tabBarHidden;
         const tabsBar = document.getElementById("tabs-bar");
         const toggleBtn = document.getElementById("hide-tab-bar-toggle");
+        const verticalToggleBtn = document.getElementById("vertical-hide-tab-bar-toggle");
         
         if (tabBarHidden) {
           tabsBar.style.display = "none";
           toggleBtn.innerHTML = '<i class="bx bx-hide text-lg"></i>';
           toggleBtn.title = "Show Tab Bar";
+          if (verticalToggleBtn) {
+            verticalToggleBtn.innerHTML = '<i class="bx bx-hide text-sm"></i><span class="text-xs">Show Bar</span>';
+            verticalToggleBtn.title = "Show Tab Bar";
+          }
         } else {
           tabsBar.style.display = "";
           toggleBtn.innerHTML = '<i class="bx bx-show text-lg"></i>';
           toggleBtn.title = "Hide Tab Bar";
+          if (verticalToggleBtn) {
+            verticalToggleBtn.innerHTML = '<i class="bx bx-show text-sm"></i><span class="text-xs">Hide Bar</span>';
+            verticalToggleBtn.title = "Hide Tab Bar";
+          }
         }
         
         localStorage.setItem("tab-bar-hidden", tabBarHidden);
@@ -1729,6 +1924,15 @@
           if (!tab) return;
           let url = addressInput.value.trim();
           if (!url) return;
+          
+          // Handle carbon:// protocol URLs
+          if (url.startsWith("carbon://")) {
+            updateTabHistory(tab, url);
+            renderTabs();
+            renderTabContent(tab);
+            return;
+          }
+          
           updateTabHistory(tab, url);
           renderTabs();
           renderTabContent(tab);
@@ -1807,14 +2011,24 @@
                 child.remove();
             }
         });
+        // Always keep at least one tab open
         tabs = [];
         activeTab = null;
-        renderTabs();
-        document.getElementById("address-bar-input").value = "";
+        addTab("carbon://newtab"); // This will create a new tab with newtab
         dropdown.classList.add("hidden");
       };
       document.getElementById("restore-tabs-btn").onclick = function () {
         restoreTabsFromSnapshot();
+        dropdown.classList.add("hidden");
+      };
+      
+      document.getElementById("global-history-btn").onclick = function () {
+        const tab = getActiveTab();
+        if (tab) {
+          updateTabHistory(tab, "carbon://history");
+          renderTabs();
+          renderTabContent(tab);
+        }
         dropdown.classList.add("hidden");
       };
       
@@ -1959,6 +2173,49 @@
         .getElementById("tabs-layout-toggle")
         .addEventListener("click", toggleVerticalTabs);
 
+      // Add event listeners for vertical tab controls
+      function attachVerticalTabListeners() {
+        const verticalNewTabBtn = document.getElementById("vertical-new-tab-btn");
+        const verticalHideTabBarToggle = document.getElementById("vertical-hide-tab-bar-toggle");
+        const verticalTabGroupsToggle = document.getElementById("vertical-tab-groups-toggle");
+        const verticalTabsLayoutToggle = document.getElementById("vertical-tabs-layout-toggle");
+        
+        if (verticalNewTabBtn && !verticalNewTabBtn.hasAttribute('data-listener-attached')) {
+          verticalNewTabBtn.addEventListener("click", () => addTab("carbon://newtab"));
+          verticalNewTabBtn.setAttribute('data-listener-attached', 'true');
+        }
+        
+        if (verticalHideTabBarToggle && !verticalHideTabBarToggle.hasAttribute('data-listener-attached')) {
+          verticalHideTabBarToggle.addEventListener("click", toggleTabBarVisibility);
+          verticalHideTabBarToggle.setAttribute('data-listener-attached', 'true');
+        }
+        
+        if (verticalTabGroupsToggle && !verticalTabGroupsToggle.hasAttribute('data-listener-attached')) {
+          verticalTabGroupsToggle.addEventListener("click", openTabGroupsModal);
+          verticalTabGroupsToggle.setAttribute('data-listener-attached', 'true');
+        }
+        
+        if (verticalTabsLayoutToggle && !verticalTabsLayoutToggle.hasAttribute('data-listener-attached')) {
+          verticalTabsLayoutToggle.addEventListener("click", toggleVerticalTabs);
+          verticalTabsLayoutToggle.setAttribute('data-listener-attached', 'true');
+        }
+      }
+      
+      function notifyIframesVerticalTabsState() {
+        // Send vertical tabs state to all iframes
+        const iframes = document.querySelectorAll('#iframe-container iframe');
+        iframes.forEach(iframe => {
+          try {
+            iframe.contentWindow.postMessage({
+              type: 'carbon-vertical-tabs-state',
+              enabled: verticalTabsMode
+            }, '*');
+          } catch (e) {
+            // Ignore cross-origin errors
+          }
+        });
+      }
+
       const historyBtn = document.getElementById("history-btn");
       const historyModalBg = document.getElementById("history-modal-bg");
       const historyModal = document.getElementById("history-modal");
@@ -2022,6 +2279,34 @@
           modalHistoryList.appendChild(row);
         });
       }
+
+      // -- Message Listener for iframe communication --
+      window.addEventListener("message", function(event) {
+        if (event.data && event.data.type === 'carbon-navigate') {
+          const tab = getActiveTab();
+          if (tab) {
+            const url = event.data.url;
+            updateTabHistory(tab, url);
+            renderTabs();
+            renderTabContent(tab);
+          }
+        } else if (event.data && event.data.type === 'carbon-proxy-sync') {
+          // Sync proxy state from newtab iframe
+          const proxy = event.data.proxy;
+          setCurrentProxy(proxy);
+          setProxy(proxy);
+        } else if (event.data && event.data.type === 'carbon-search-engine-sync') {
+          // Sync search engine state from newtab iframe
+          const searchEngine = event.data.searchEngine;
+          setCurrentSearchEngine(searchEngine);
+        } else if (event.data && event.data.type === 'carbon-request-vertical-tabs-state') {
+          // Send current vertical tabs state to requesting iframe
+          event.source.postMessage({
+            type: 'carbon-vertical-tabs-state',
+            enabled: verticalTabsMode
+          }, '*');
+        }
+      });
 
       // -- Keyboard Shortcuts --
       document.addEventListener("keydown", (e) => {
@@ -2096,25 +2381,40 @@
       if (savedVerticalMode === "true") {
         verticalTabsMode = true;
         const verticalContainer = document.getElementById("vertical-tabs-container");
+        const verticalControls = document.getElementById("vertical-tab-controls");
+        const horizontalControls = document.getElementById("horizontal-tab-controls");
         const mainContent = document.getElementById("main-content-wrapper");
         const toggleBtn = document.getElementById("tabs-layout-toggle");
         
         verticalContainer.classList.add("open");
-        mainContent.classList.remove("collapsed");
+        verticalControls.classList.remove("hidden");
+        horizontalControls.classList.add("hidden");
+        mainContent.classList.add("with-vertical-tabs");
         toggleBtn.innerHTML = '<i class="bx bx-sidebar text-lg rotate-180"></i>';
         toggleBtn.title = "Hide Vertical Tabs";
+        
+        // Attach vertical tab event listeners
+        setTimeout(attachVerticalTabListeners, 100);
+        
+        // Notify existing iframes about vertical tabs state
+        setTimeout(notifyIframesVerticalTabsState, 600);
       }
       
       // Restore tab bar visibility from localStorage
       if (tabBarHidden) {
         const tabsBar = document.getElementById("tabs-bar");
         const toggleBtn = document.getElementById("hide-tab-bar-toggle");
+        const verticalToggleBtn = document.getElementById("vertical-hide-tab-bar-toggle");
         tabsBar.style.display = "none";
         toggleBtn.innerHTML = '<i class="bx bx-hide text-lg"></i>';
         toggleBtn.title = "Show Tab Bar";
+        if (verticalToggleBtn) {
+          verticalToggleBtn.innerHTML = '<i class="bx bx-hide text-sm"></i><span class="text-xs">Show Bar</span>';
+          verticalToggleBtn.title = "Show Tab Bar";
+        }
       }
       
-      if (tabs.length === 0) addTab();
+      if (tabs.length === 0) addTab("carbon://newtab");
       else loadTabsData();
 
       // Initialize sortable for horizontal tabs
