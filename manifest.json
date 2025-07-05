@@ -1,0 +1,72 @@
+{
+  "manifest_version": 3,
+  "name": "Carbon Browser Extension",
+  "version": "1.0.0",
+  "description": "Advanced browser extension with proxy management, stealth features, and customization options",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "webRequest",
+    "webRequestBlocking",
+    "tabs",
+    "background",
+    "unlimitedStorage",
+    "contextMenus",
+    "declarativeNetRequest"
+  ],
+  
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  
+  "background": {
+    "service_worker": "extension-worker.js",
+    "type": "module"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  
+  "action": {
+    "default_popup": "extension-popup.html",
+    "default_title": "Carbon Extensions",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["uv.config.js", "injection-scripts/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "carbon_protocols",
+        "enabled": true,
+        "path": "carbon-protocol-rules.json"
+      }
+    ]
+  }
+}

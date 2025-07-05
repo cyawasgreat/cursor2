@@ -334,6 +334,206 @@
         <section class="settings-section">
           <div class="flex items-center gap-3 mb-6">
             <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-500 flex items-center justify-center"
+            >
+              <i class="bx bx-extension text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white">Extension Features</label>
+          </div>
+          <div class="grid grid-cols-1 gap-4 mb-6">
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white">UV Config Dark Mode</span>
+                <p class="text-sm text-white/60 mt-1">Inject dark mode CSS into proxied websites</p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="uvDarkMode" checked />
+                <div class="w-12 h-7 rounded-full" id="uvDarkModeBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="uvDarkModeKnob"
+                ></div>
+              </div>
+            </label>
+            
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white">Custom CSS Injection</span>
+                <p class="text-sm text-white/60 mt-1">Enable custom CSS injection in proxied content</p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="customCSS" checked />
+                <div class="w-12 h-7 rounded-full" id="customCSSBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="customCSSKnob"
+                ></div>
+              </div>
+            </label>
+            
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white">Custom JS Injection</span>
+                <p class="text-sm text-white/60 mt-1">Enable custom JavaScript injection in proxied content</p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="customJS" checked />
+                <div class="w-12 h-7 rounded-full" id="customJSBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="customJSKnob"
+                ></div>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center"
+            >
+              <i class="bx bx-user-circle text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white">User Agent Settings</label>
+          </div>
+          <div class="mb-4">
+            <select
+              class="glass-effect border rounded-xl px-4 py-3 w-full text-white font-medium bg-gray-800"
+              id="userAgentSelect"
+            >
+              <option value="default">Default Browser</option>
+              <option value="chrome">Chrome (Latest)</option>
+              <option value="firefox">Firefox (Latest)</option>
+              <option value="safari">Safari (Latest)</option>
+              <option value="edge">Microsoft Edge</option>
+              <option value="mobile-chrome">Mobile Chrome</option>
+              <option value="mobile-safari">Mobile Safari</option>
+              <option value="custom">Custom User Agent</option>
+            </select>
+          </div>
+          <div id="customUserAgentField" class="hidden mb-4">
+            <textarea
+              id="customUserAgent"
+              placeholder="Enter custom user agent string..."
+              class="glass-effect border rounded-xl px-4 py-3 w-full text-white font-medium bg-gray-800 h-24 resize-none"
+            ></textarea>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center"
+            >
+              <i class="bx bx-palette text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white">Theme Settings</label>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <button
+              class="theme-btn bg-gray-800 hover:bg-gray-700 p-4 rounded-xl transition-all duration-300 font-semibold text-white border border-white/20"
+              data-theme="dark"
+            >
+              <i class="bx bx-moon text-2xl mb-2 block"></i>
+              Dark
+            </button>
+            <button
+              class="theme-btn bg-white hover:bg-gray-100 p-4 rounded-xl transition-all duration-300 font-semibold text-gray-900 border border-gray-300"
+              data-theme="light"
+            >
+              <i class="bx bx-sun text-2xl mb-2 block"></i>
+              Light
+            </button>
+            <button
+              class="theme-btn bg-amber-600 hover:bg-amber-500 p-4 rounded-xl transition-all duration-300 font-semibold text-white border border-amber-400"
+              data-theme="cappuccino"
+            >
+              <i class="bx bx-coffee text-2xl mb-2 block"></i>
+              Cappuccino
+            </button>
+            <button
+              class="theme-btn bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 p-4 rounded-xl transition-all duration-300 font-semibold text-white border border-purple-400"
+              data-theme="default"
+            >
+              <i class="bx bx-color-fill text-2xl mb-2 block"></i>
+              Default
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"
+            >
+              <i class="bx bx-ghost text-white text-lg"></i>
+            </div>
+            <label class="text-xl font-bold text-white">Stealth Mode</label>
+          </div>
+          <div class="grid grid-cols-1 gap-4">
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white">Enable Stealth Mode</span>
+                <p class="text-sm text-white/60 mt-1">Hide browsing activity and spoof fingerprinting</p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="stealthMode" />
+                <div class="w-12 h-7 rounded-full" id="stealthModeBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="stealthModeKnob"
+                ></div>
+              </div>
+            </label>
+            
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white">Block Analytics</span>
+                <p class="text-sm text-white/60 mt-1">Prevent tracking scripts from loading</p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="blockAnalytics" />
+                <div class="w-12 h-7 rounded-full" id="blockAnalyticsBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="blockAnalyticsKnob"
+                ></div>
+              </div>
+            </label>
+            
+            <label
+              class="flex items-center justify-between cursor-pointer text-white/80 p-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+            >
+              <div class="mr-4">
+                <span class="font-semibold text-lg text-white">Canvas Spoofing</span>
+                <p class="text-sm text-white/60 mt-1">Add noise to canvas fingerprinting</p>
+              </div>
+              <div class="relative flex-shrink-0">
+                <input type="checkbox" class="sr-only" id="canvasSpoofing" />
+                <div class="w-12 h-7 rounded-full" id="canvasSpoofingBg"></div>
+                <div
+                  class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform"
+                  id="canvasSpoofingKnob"
+                ></div>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="flex items-center gap-3 mb-6">
+            <div
               class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center"
             >
               <i class="bx bx-cog text-white text-lg"></i>

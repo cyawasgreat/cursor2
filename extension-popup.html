@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Extensions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <style>
+        body { 
+            width: 380px; 
+            height: 600px; 
+            overflow-y: auto;
+            font-family: 'Inter', sans-serif;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #374151;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #06b6d4;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .section-divider {
+            border-bottom: 1px solid #374151;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-cyan-500 to-blue-600 p-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="bx bx-extension text-2xl"></i>
+                <h1 class="text-xl font-bold">Carbon Extensions</h1>
+            </div>
+            <button id="refreshBtn" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                <i class="bx bx-refresh"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="p-4 space-y-4">
+        <!-- UV Config Injections -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <i class="bx bx-code-alt text-cyan-400"></i>
+                    <h2 class="text-lg font-semibold">UV Config Injections</h2>
+                </div>
+                <button id="uvConfigToggleAll" class="text-sm text-cyan-400 hover:text-cyan-300">
+                    Toggle All
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Dark Mode Injection</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="uvDarkMode" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Custom CSS Injector</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="uvCustomCSS" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Custom JS Injector</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="uvCustomJS" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Global Enhancements</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="uvGlobalEnhancements" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="bx bx-flash text-yellow-400"></i>
+                <h2 class="text-lg font-semibold">Quick Actions</h2>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <button id="openGames" class="bg-green-600 hover:bg-green-500 p-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="bx bx-game block mb-1"></i>
+                    Games
+                </button>
+                <button id="openSettings" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="bx bx-cog block mb-1"></i>
+                    Settings
+                </button>
+                <button id="toggleStealth" class="bg-purple-600 hover:bg-purple-500 p-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="bx bx-ghost block mb-1"></i>
+                    Stealth
+                </button>
+                <button id="panicButton" class="bg-red-600 hover:bg-red-500 p-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="bx bx-error-alt block mb-1"></i>
+                    Panic
+                </button>
+            </div>
+        </section>
+
+        <!-- User Agent -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="bx bx-user-circle text-blue-400"></i>
+                <h2 class="text-lg font-semibold">User Agent</h2>
+            </div>
+            
+            <select id="userAgentSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm">
+                <option value="default">Default</option>
+                <option value="chrome">Chrome (Latest)</option>
+                <option value="firefox">Firefox (Latest)</option>
+                <option value="safari">Safari (Latest)</option>
+                <option value="edge">Edge (Latest)</option>
+                <option value="mobile-chrome">Mobile Chrome</option>
+                <option value="mobile-safari">Mobile Safari</option>
+                <option value="custom">Custom</option>
+            </select>
+            
+            <div id="customUserAgent" class="mt-2 hidden">
+                <textarea id="customUserAgentText" placeholder="Enter custom user agent..." 
+                         class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm h-20 resize-none"></textarea>
+            </div>
+        </section>
+
+        <!-- Theme Settings -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="bx bx-palette text-pink-400"></i>
+                <h2 class="text-lg font-semibold">Themes</h2>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <button class="theme-btn bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-sm" data-theme="dark">
+                    <i class="bx bx-moon block mb-1"></i>
+                    Dark
+                </button>
+                <button class="theme-btn bg-gray-100 text-gray-900 hover:bg-gray-200 p-2 rounded-lg text-sm" data-theme="light">
+                    <i class="bx bx-sun block mb-1"></i>
+                    Light
+                </button>
+                <button class="theme-btn bg-amber-600 hover:bg-amber-500 p-2 rounded-lg text-sm" data-theme="cappuccino">
+                    <i class="bx bx-coffee block mb-1"></i>
+                    Cappuccino
+                </button>
+                <button class="theme-btn bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg text-sm" data-theme="default">
+                    <i class="bx bx-color-fill block mb-1"></i>
+                    Default
+                </button>
+            </div>
+            
+            <button id="customThemeBtn" class="w-full bg-purple-600 hover:bg-purple-500 p-2 rounded-lg text-sm font-medium transition-colors">
+                <i class="bx bx-brush"></i> Custom Theme
+            </button>
+        </section>
+
+        <!-- Stealth Mode Settings -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="bx bx-ghost text-purple-400"></i>
+                <h2 class="text-lg font-semibold">Stealth Mode</h2>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Enable Stealth Mode</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="stealthMode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Hide From History</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="hideFromHistory">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Block Analytics</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="blockAnalytics">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Spoof Canvas</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="spoofCanvas">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Panic Key Settings -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="bx bx-error-alt text-red-400"></i>
+                <h2 class="text-lg font-semibold">Panic Key</h2>
+            </div>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Panic Key Combination</label>
+                    <div class="flex gap-2">
+                        <select id="panicModifier" class="bg-gray-700 border border-gray-600 rounded p-2 text-sm flex-1">
+                            <option value="ctrl">Ctrl</option>
+                            <option value="alt">Alt</option>
+                            <option value="shift">Shift</option>
+                            <option value="ctrl+shift">Ctrl+Shift</option>
+                        </select>
+                        <select id="panicKey" class="bg-gray-700 border border-gray-600 rounded p-2 text-sm flex-1">
+                            <option value="p">P</option>
+                            <option value="x">X</option>
+                            <option value="esc">Escape</option>
+                            <option value="space">Space</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Panic Action</label>
+                    <select id="panicAction" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-sm">
+                        <option value="close">Close Tab</option>
+                        <option value="redirect">Redirect to Safe Site</option>
+                        <option value="minimize">Minimize Window</option>
+                        <option value="hide">Hide All Content</option>
+                    </select>
+                </div>
+                
+                <div id="panicRedirectUrl" class="hidden">
+                    <input type="url" placeholder="Redirect URL (e.g., https://google.com)" 
+                           class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-sm">
+                </div>
+            </div>
+        </section>
+
+        <!-- Close Prevention -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="bx bx-shield text-green-400"></i>
+                <h2 class="text-lg font-semibold">Close Prevention</h2>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Prevent Tab Close</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="preventClose">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Confirm Before Close</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="confirmClose">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sync Status -->
+        <section class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="bx bx-sync text-cyan-400"></i>
+                <h2 class="text-lg font-semibold">Firebase Sync</h2>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <span class="text-sm" id="syncStatus">Connecting...</span>
+                <button id="forceSyncBtn" class="bg-cyan-600 hover:bg-cyan-500 px-3 py-1 rounded text-sm transition-colors">
+                    Sync Now
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <script src="extension-popup.js"></script>
+</body>
+</html>
