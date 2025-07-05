@@ -65,42 +65,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Update UV configuration injection
 function updateUVConfig() {
-    // Only modify uv.config.js if we're in the main window context
-    if (window.self !== window.top || !window.__uv$config) return;
-    
-    if (!originalUVConfig) {
-        originalUVConfig = JSON.parse(JSON.stringify(window.__uv$config));
-    }
+    console.log('Updating UV config with settings:', extensionSettings.uvConfig);
     
     const config = extensionSettings.uvConfig || {};
     
-    // Create a new config based on settings
-    const newConfig = `
-self.__uv$config = ${JSON.stringify(originalUVConfig)};
-
-// Carbon Extension UV Config Modifications
-if (typeof window !== "undefined" && typeof document !== "undefined") {
-  (function carbonExtensionInjection() {
-    function waitForEvalReady() {
-      return new Promise(resolve => {
-        if (typeof __uv$eval !== "undefined") return resolve();
-        const interval = setInterval(() => {
-          if (typeof __uv$eval !== "undefined") {
-            clearInterval(interval);
-            resolve();
-          }
-        }, 10);
-      });
-    }
-
-    // Only run in the proxied iframe, not the main window
-    if (window.top === window) return;
-
-    waitForEvalReady().then(() => {
-      ${config.darkMode ? `
-      __uv$eval(\`
-        (function injectDarkCSS() {
-          const darkCSS = \\\`
+    // Remove existing UV injections
+    const existingDark = document.getElementById('carbon-uv-dark-css');
+    if (existingDark) existingDark.remove();
+    
+    // Apply dark mode injection if enabled
+    if (config.darkMode) {
+        const darkCSS = `
             html, body {
               background: #181a1b !important;
               color: #e8e6e3 !important;
@@ -128,44 +103,67 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
             ::-webkit-scrollbar-thumb {
               background: #2c2f33 !important;
             }
-          \\\`;
-          let style = document.createElement('style');
-          style.id = 'uv-injected-dark-css';
-          style.textContent = darkCSS;
-          document.head.appendChild(style);
-        })();
-      \`);` : ''}
+            input, textarea, select {
+              background: #23272a !important;
+              color: #e8e6e3 !important;
+              border-color: #3a3f41 !important;
+            }
+            button {
+              background: #2c2f33 !important;
+              color: #e8e6e3 !important;
+              border-color: #3a3f41 !important;
+            }
+        `;
+        
+        const style = document.createElement('style');
+        style.id = 'carbon-uv-dark-css';
+        style.textContent = darkCSS;
+        document.head.appendChild(style);
+        console.log('Dark mode CSS injected');
+    }
 
-      ${config.customCSS ? `
-      // Custom CSS/JS injectors for user
-      window.injectCustomCSS = function(css) {
-        let styleTag = document.getElementById('custom-css-injector');
-        if (!styleTag) {
-          styleTag = document.createElement('style');
-          styleTag.id = 'custom-css-injector';
-          document.head.appendChild(styleTag);
+    // Setup custom CSS injector if enabled
+    if (config.customCSS) {
+        window.carbonInjectCSS = function(css) {
+            let styleTag = document.getElementById('carbon-custom-css');
+            if (!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'carbon-custom-css';
+                document.head.appendChild(styleTag);
+            }
+            styleTag.textContent = css;
+            console.log('Custom CSS injected');
+        };
+    } else {
+        delete window.carbonInjectCSS;
+    }
+
+    // Setup custom JS injector if enabled
+    if (config.customJS) {
+        window.carbonInjectScript = function(js) {
+            const scriptTag = document.createElement('script');
+            scriptTag.type = 'text/javascript';
+            scriptTag.textContent = js;
+            scriptTag.id = 'carbon-injected-script-' + Date.now();
+            document.body.appendChild(scriptTag);
+            console.log('Custom script injected');
+        };
+    } else {
+        delete window.carbonInjectScript;
+    }
+
+    // Apply global enhancements if enabled
+    if (config.globalEnhancements) {
+        // Smooth scrolling
+        if (window.CSS && CSS.supports('scroll-behavior', 'smooth')) {
+            document.documentElement.style.scrollBehavior = 'smooth';
         }
-        styleTag.textContent = css;
-      };` : ''}
-
-      ${config.customJS ? `
-      window.injectCustomScript = function(js) {
-        let scriptTag = document.createElement('script');
-        scriptTag.type = 'text/javascript';
-        scriptTag.textContent = js;
-        document.body.appendChild(scriptTag);
-      };` : ''}
-    });
-  })();
-}
-`;
-
-    // Inject the modified config
-    try {
-        eval(newConfig);
-        console.log('UV Config updated by Carbon Extension');
-    } catch (error) {
-        console.error('Error updating UV config:', error);
+        
+        // Lazy loading for images
+        const images = document.querySelectorAll('img:not([loading])');
+        images.forEach(img => img.loading = 'lazy');
+        
+        console.log('Global enhancements applied');
     }
 }
 
@@ -174,13 +172,15 @@ function setupPanicKeyListener() {
     // Remove existing listener
     if (panicKeyHandler) {
         document.removeEventListener('keydown', panicKeyHandler);
+        panicKeyHandler = null;
     }
     
     if (!extensionSettings.panic) return;
     
+    const { modifier, key } = extensionSettings.panic;
+    console.log('Setting up panic key listener:', modifier + '+' + key);
+    
     panicKeyHandler = (event) => {
-        const { modifier, key } = extensionSettings.panic;
-        
         let modifierPressed = false;
         
         switch (modifier) {
@@ -216,12 +216,15 @@ function setupPanicKeyListener() {
         }
         
         if (modifierPressed && keyPressed) {
+            console.log('Panic key triggered!', modifier + '+' + key);
             event.preventDefault();
+            event.stopPropagation();
             chrome.runtime.sendMessage({ action: 'executePanic' });
         }
     };
     
-    document.addEventListener('keydown', panicKeyHandler);
+    document.addEventListener('keydown', panicKeyHandler, true); // Use capture phase
+    console.log('Panic key listener setup complete');
 }
 
 // Enable stealth mode features
@@ -361,7 +364,9 @@ function removeHistoryIndicator() {
 }
 
 // Apply theme
-function applyTheme(theme) {
+function applyTheme(theme, themeName) {
+    console.log('Applying theme:', themeName, theme);
+    
     const themeId = 'carbon-extension-theme';
     let existingTheme = document.getElementById(themeId);
     
@@ -384,14 +389,46 @@ function applyTheme(theme) {
             color: var(--carbon-text) !important;
         }
         
-        .carbon-themed {
+        .carbon-themed, .bg-gray-900, .bg-gray-800, .bg-surface, .bg-overlay {
             background-color: var(--carbon-secondary) !important;
             color: var(--carbon-text) !important;
             border-color: var(--carbon-accent) !important;
         }
+        
+        .text-white, .text-text {
+            color: var(--carbon-text) !important;
+        }
+        
+        .text-cyan-400, .text-foam {
+            color: var(--carbon-accent) !important;
+        }
+        
+        /* Apply theme to common Carbon elements */
+        .bg-gradient-to-br {
+            background: var(--carbon-primary) !important;
+        }
+        
+        input, textarea, select {
+            background-color: var(--carbon-secondary) !important;
+            color: var(--carbon-text) !important;
+            border-color: var(--carbon-accent) !important;
+        }
+        
+        button {
+            background-color: var(--carbon-secondary) !important;
+            color: var(--carbon-text) !important;
+        }
+        
+        .hover\\:bg-highlight-med:hover {
+            background-color: var(--carbon-accent) !important;
+        }
     `;
     
     document.head.appendChild(themeStyle);
+    
+    // Store theme preference
+    localStorage.setItem('carbonTheme', themeName);
+    console.log('Theme applied successfully:', themeName);
 }
 
 // Apply current theme from settings
@@ -414,6 +451,7 @@ function applyCurrentTheme() {
 // Update close prevention
 function updateClosePrevention() {
     const settings = extensionSettings.closePrevention || {};
+    console.log('Updating close prevention:', settings);
     
     // Remove existing listeners
     window.removeEventListener('beforeunload', closePreventionHandler);
@@ -421,16 +459,20 @@ function updateClosePrevention() {
     if (settings.preventClose || settings.confirmClose) {
         closePreventionEnabled = true;
         window.addEventListener('beforeunload', closePreventionHandler);
+        console.log('Close prevention enabled');
     } else {
         closePreventionEnabled = false;
+        console.log('Close prevention disabled');
     }
 }
 
 // Close prevention handler
 function closePreventionHandler(event) {
     const settings = extensionSettings.closePrevention || {};
+    console.log('Close prevention triggered:', settings);
     
     if (settings.preventClose) {
+        console.log('Preventing close');
         event.preventDefault();
         event.returnValue = '';
         return '';
@@ -438,6 +480,7 @@ function closePreventionHandler(event) {
     
     if (settings.confirmClose) {
         const message = 'Are you sure you want to leave this page?';
+        console.log('Showing close confirmation');
         event.returnValue = message;
         return message;
     }
@@ -445,38 +488,48 @@ function closePreventionHandler(event) {
 
 // Hide all content (panic action)
 function hideAllContent() {
+    console.log('Hiding all content - panic mode activated');
+    
+    // Remove existing overlay if present
+    const existingOverlay = document.getElementById('carbon-panic-overlay');
+    if (existingOverlay) existingOverlay.remove();
+    
     // Create overlay to hide content
     const overlay = document.createElement('div');
     overlay.id = 'carbon-panic-overlay';
     overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: #ffffff;
-        z-index: 999999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        font-family: Arial, sans-serif;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: #ffffff !important;
+        z-index: 2147483647 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-direction: column !important;
+        font-family: Arial, sans-serif !important;
     `;
     
     overlay.innerHTML = `
-        <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" style="margin-bottom: 30px;">
-        <div style="max-width: 600px; text-align: center;">
-            <input type="text" placeholder="Search Google or type a URL" style="
-                width: 500px;
-                padding: 10px 15px;
-                border: 1px solid #ddd;
-                border-radius: 25px;
-                font-size: 16px;
-                outline: none;
-            ">
-        </div>
-        <div style="margin-top: 30px; font-size: 14px; color: #666;">
-            Press Ctrl+Shift+R to restore
+        <div style="text-align: center;">
+            <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" style="margin-bottom: 30px; max-width: 272px;">
+            <div style="max-width: 600px; text-align: center;">
+                <input type="text" placeholder="Search Google or type a URL" style="
+                    width: 500px;
+                    max-width: 90vw;
+                    padding: 10px 15px;
+                    border: 1px solid #ddd;
+                    border-radius: 25px;
+                    font-size: 16px;
+                    outline: none;
+                    box-sizing: border-box;
+                ">
+            </div>
+            <div style="margin-top: 30px; font-size: 14px; color: #666;">
+                Press Ctrl+Shift+R to restore
+            </div>
         </div>
     `;
     
@@ -485,12 +538,14 @@ function hideAllContent() {
     // Listen for restore key combination
     const restoreHandler = (event) => {
         if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'r') {
+            console.log('Restoring content from panic mode');
             overlay.remove();
             document.removeEventListener('keydown', restoreHandler);
         }
     };
     
     document.addEventListener('keydown', restoreHandler);
+    console.log('Panic overlay created - press Ctrl+Shift+R to restore');
 }
 
 // Handle carbon:// protocol redirects

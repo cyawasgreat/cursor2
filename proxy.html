@@ -531,11 +531,13 @@
       <script>
         // Carbon Extension Integration
         function openCarbonGames() {
-          openInCurrentTab('games.html');
+          console.log('Opening games page');
+          window.open('games.html', '_blank');
         }
         
         function openCarbonSettings() {
-          openInCurrentTab('settings.html');
+          console.log('Opening settings page');
+          window.open('settings.html', '_blank');
         }
         
         function openExtensionPopup() {
