@@ -363,89 +363,299 @@ function removeHistoryIndicator() {
     if (indicator) indicator.remove();
 }
 
-// Apply theme
-function applyTheme(theme, themeName) {
-    console.log('Applying theme:', themeName, theme);
+// Apply theme globally to all pages
+function applyTheme(themeName) {
+    console.log('Applying global theme:', themeName);
     
-    const themeId = 'carbon-extension-theme';
-    let existingTheme = document.getElementById(themeId);
+    const themes = {
+        dark: {
+            background: '#1f1d2e',
+            surface: '#2a273f',
+            text: '#e8e6e3',
+            textSecondary: '#9893a5',
+            accent: '#00ff88',
+            border: '#3b3851'
+        },
+        light: {
+            background: '#ffffff',
+            surface: '#f8f9fa',
+            text: '#333333',
+            textSecondary: '#666666',
+            accent: '#0066cc',
+            border: '#e1e5e9'
+        },
+        cappuccino: {
+            background: '#2d1b14',
+            surface: '#3d2b1f',
+            text: '#f4f1de',
+            textSecondary: '#d4c5a9',
+            accent: '#e07a5f',
+            border: '#4d3b2f'
+        },
+        default: {
+            background: '#191724',
+            surface: '#26233a',
+            text: '#e0def4',
+            textSecondary: '#908caa',
+            accent: '#c4a7e7',
+            border: '#403d52'
+        }
+    };
+
+    const theme = themes[themeName] || themes.default;
     
+    // Remove existing theme styles
+    const existingTheme = document.getElementById('carbon-global-theme');
     if (existingTheme) {
         existingTheme.remove();
     }
     
-    const themeStyle = document.createElement('style');
-    themeStyle.id = themeId;
-    themeStyle.textContent = `
+    // Create comprehensive theme CSS that affects the ENTIRE page
+    const themeCSS = `
         :root {
-            --carbon-primary: ${theme.primary} !important;
-            --carbon-secondary: ${theme.secondary} !important;
+            --carbon-bg: ${theme.background} !important;
+            --carbon-surface: ${theme.surface} !important;
             --carbon-text: ${theme.text} !important;
+            --carbon-text-secondary: ${theme.textSecondary} !important;
             --carbon-accent: ${theme.accent} !important;
+            --carbon-border: ${theme.border} !important;
         }
         
-        body {
-            background-color: var(--carbon-primary) !important;
-            color: var(--carbon-text) !important;
+        /* Apply to HTML and body */
+        html, body {
+            background-color: ${theme.background} !important;
+            color: ${theme.text} !important;
+            transition: background-color 0.3s ease, color 0.3s ease !important;
         }
         
-        .carbon-themed, .bg-gray-900, .bg-gray-800, .bg-surface, .bg-overlay {
-            background-color: var(--carbon-secondary) !important;
-            color: var(--carbon-text) !important;
-            border-color: var(--carbon-accent) !important;
+        /* Apply to ALL elements */
+        * {
+            color: inherit !important;
+            border-color: ${theme.border} !important;
         }
         
-        .text-white, .text-text {
-            color: var(--carbon-text) !important;
+        /* Override all background elements */
+        div, section, article, header, footer, nav, main, aside, span,
+        .bg-white, .bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300,
+        .bg-gray-800, .bg-gray-900, .bg-black, .bg-primary, .bg-secondary,
+        [class*="bg-"], [style*="background"] {
+            background-color: ${theme.background} !important;
+            color: ${theme.text} !important;
         }
         
-        .text-cyan-400, .text-foam {
-            color: var(--carbon-accent) !important;
+        /* Cards and containers */
+        .card, .container, .wrapper, .content, .panel, .box, .modal,
+        [class*="card"], [class*="container"], [class*="wrapper"],
+        [class*="panel"], [class*="box"] {
+            background-color: ${theme.surface} !important;
+            color: ${theme.text} !important;
+            border-color: ${theme.border} !important;
         }
         
-        /* Apply theme to common Carbon elements */
-        .bg-gradient-to-br {
-            background: var(--carbon-primary) !important;
+        /* Form elements */
+        input, textarea, select, button {
+            background-color: ${theme.surface} !important;
+            color: ${theme.text} !important;
+            border-color: ${theme.border} !important;
         }
         
-        input, textarea, select {
-            background-color: var(--carbon-secondary) !important;
-            color: var(--carbon-text) !important;
-            border-color: var(--carbon-accent) !important;
+        input:focus, textarea:focus, select:focus {
+            border-color: ${theme.accent} !important;
+            box-shadow: 0 0 0 2px ${theme.accent}40 !important;
         }
         
-        button {
-            background-color: var(--carbon-secondary) !important;
-            color: var(--carbon-text) !important;
+        button:hover {
+            background-color: ${theme.accent} !important;
+            color: ${theme.background} !important;
         }
         
-        .hover\\:bg-highlight-med:hover {
-            background-color: var(--carbon-accent) !important;
+        /* Links */
+        a, a * {
+            color: ${theme.accent} !important;
+        }
+        
+        a:hover {
+            color: ${theme.text} !important;
+        }
+        
+        /* Text elements */
+        h1, h2, h3, h4, h5, h6, p, span, strong, em, label, td, th {
+            color: ${theme.text} !important;
+        }
+        
+        /* Tables */
+        table, tr, td, th {
+            background-color: ${theme.surface} !important;
+            color: ${theme.text} !important;
+            border-color: ${theme.border} !important;
+        }
+        
+        /* Lists */
+        ul, ol, li {
+            color: ${theme.text} !important;
+        }
+        
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            background-color: ${theme.background} !important;
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background-color: ${theme.border} !important;
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: ${theme.accent} !important;
+        }
+        
+        /* Selection */
+        ::selection {
+            background-color: ${theme.accent}60 !important;
+            color: ${theme.text} !important;
+        }
+        
+        /* Code blocks */
+        code, pre, .code, [class*="code"] {
+            background-color: ${theme.surface} !important;
+            color: ${theme.text} !important;
+            border-color: ${theme.border} !important;
+        }
+        
+        /* Common framework classes */
+        .text-white, .text-black, .text-gray-900, .text-gray-800,
+        .text-primary, .text-secondary, [class*="text-"] {
+            color: ${theme.text} !important;
+        }
+        
+        /* Override inline styles */
+        [style*="background-color"], [style*="color"] {
+            background-color: ${theme.background} !important;
+            color: ${theme.text} !important;
+        }
+        
+        /* Carbon extension specific */
+        .carbon-theme-${themeName} {
+            background-color: ${theme.background} !important;
+            color: ${theme.text} !important;
+        }
+        
+        /* Tailwind and framework overrides */
+        .bg-gradient-to-br, .bg-gradient-to-r, .bg-gradient-to-l,
+        [class*="gradient"] {
+            background: linear-gradient(135deg, ${theme.background}, ${theme.surface}) !important;
+        }
+        
+        /* Shadow elements */
+        [class*="shadow"] {
+            box-shadow: 0 4px 6px ${theme.background}40 !important;
         }
     `;
     
+    // Inject theme CSS with highest priority
+    const themeStyle = document.createElement('style');
+    themeStyle.id = 'carbon-global-theme';
+    themeStyle.textContent = themeCSS;
     document.head.appendChild(themeStyle);
     
-    // Store theme preference
-    localStorage.setItem('carbonTheme', themeName);
-    console.log('Theme applied successfully:', themeName);
+    // Add theme class to body and html
+    document.documentElement.className = document.documentElement.className.replace(/carbon-theme-\w+/g, '');
+    document.body.className = document.body.className.replace(/carbon-theme-\w+/g, '');
+    document.documentElement.classList.add(`carbon-theme-${themeName}`);
+    document.body.classList.add(`carbon-theme-${themeName}`);
+    
+    // Store theme in all available storage methods
+    localStorage.setItem('carbonCurrentTheme', themeName);
+    localStorage.setItem('carbonExtensionSettings', JSON.stringify({
+        ...extensionSettings,
+        theme: { current: themeName }
+    }));
+    
+    // Update extension settings
+    extensionSettings.theme = { current: themeName };
+    
+    // Trigger settings update event
+    window.dispatchEvent(new CustomEvent('carbonSettingsUpdate', {
+        detail: extensionSettings
+    }));
+    
+    // Send message to background script
+    chrome.runtime.sendMessage({ 
+        action: 'updateTheme', 
+        theme: themeName,
+        settings: extensionSettings 
+    });
+    
+    console.log(`Global theme applied: ${themeName}`, theme);
+    
+    // Apply to all iframes after a short delay
+    setTimeout(() => {
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+            try {
+                if (iframe.contentDocument) {
+                    const iframeStyle = iframe.contentDocument.createElement('style');
+                    iframeStyle.textContent = themeCSS;
+                    iframe.contentDocument.head.appendChild(iframeStyle);
+                }
+            } catch (e) {
+                // Cross-origin iframe, can't access
+                console.log('Cannot theme cross-origin iframe');
+            }
+        });
+    }, 500);
 }
 
 // Apply current theme from settings
 function applyCurrentTheme() {
-    if (!extensionSettings.theme) return;
+    // Try to load theme from multiple sources
+    let currentTheme = 'dark'; // default
     
-    const themes = {
-        dark: { primary: '#1f1d2e', secondary: '#26233a', text: '#e0def4', accent: '#9ccfd8' },
-        light: { primary: '#ffffff', secondary: '#f8f9fa', text: '#212529', accent: '#0d6efd' },
-        cappuccino: { primary: '#2d1b14', secondary: '#3c2a1e', text: '#f4e4bc', accent: '#d4a574' },
-        default: { primary: '#191724', secondary: '#1f1d2e', text: '#e0def4', accent: '#c4a7e7' }
-    };
-    
-    const theme = themes[extensionSettings.theme];
-    if (theme) {
-        applyTheme(theme);
+    // Check extension settings
+    if (extensionSettings.theme?.current) {
+        currentTheme = extensionSettings.theme.current;
+    } else if (extensionSettings.theme) {
+        currentTheme = extensionSettings.theme;
     }
+    
+    // Check localStorage
+    const storedTheme = localStorage.getItem('carbonCurrentTheme');
+    if (storedTheme) {
+        currentTheme = storedTheme;
+    }
+    
+    console.log('Applying current theme:', currentTheme);
+    applyTheme(currentTheme);
+}
+
+// Get current UV config settings
+function getCurrentUVConfig() {
+    return extensionSettings.uvConfig || {
+        darkMode: true,
+        customCSS: true,
+        customJS: true,
+        globalEnhancements: true
+    };
+}
+
+// Update all storage locations when settings change
+function updateAllStorageLocations() {
+    // Update localStorage
+    localStorage.setItem('carbonExtensionSettings', JSON.stringify(extensionSettings));
+    
+    // Update Chrome storage
+    chrome.storage.local.set({ extensionSettings });
+    
+    // Update window object
+    window.carbonExtensionSettings = extensionSettings;
+    
+    // Trigger UV config update event
+    window.dispatchEvent(new CustomEvent('carbonSettingsUpdate', {
+        detail: extensionSettings
+    }));
+    
+    console.log('Updated all storage locations with settings:', extensionSettings);
 }
 
 // Update close prevention

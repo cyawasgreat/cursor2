@@ -10,22 +10,63 @@ self.__uv$config = {
 };
 
 // Carbon Extension UV Config Integration
-// Load extension settings from storage or defaults
+// Load extension settings from multiple sources
 let carbonExtensionSettings = {
   uvConfig: {
     darkMode: true,
     customCSS: true,
     customJS: true,
     globalEnhancements: true
+  },
+  theme: {
+    current: 'dark'
   }
 };
 
-// Try to load from extension storage
-if (typeof chrome !== 'undefined' && chrome.storage) {
-  chrome.storage.local.get('extensionSettings', (result) => {
-    if (result.extensionSettings) {
-      carbonExtensionSettings = result.extensionSettings;
+// Function to load settings from all available sources
+function loadCarbonExtensionSettings() {
+  // Try localStorage first (fastest)
+  try {
+    const localSettings = localStorage.getItem('carbonExtensionSettings');
+    if (localSettings) {
+      const parsed = JSON.parse(localSettings);
+      carbonExtensionSettings = { ...carbonExtensionSettings, ...parsed };
+      console.log('UV Config: Loaded from localStorage:', carbonExtensionSettings);
+      return;
     }
+  } catch (e) {
+    console.warn('UV Config: Failed to load from localStorage:', e);
+  }
+
+  // Try window object (if set by extension)
+  if (typeof window !== 'undefined' && window.carbonExtensionSettings) {
+    carbonExtensionSettings = { ...carbonExtensionSettings, ...window.carbonExtensionSettings };
+    console.log('UV Config: Loaded from window object:', carbonExtensionSettings);
+    return;
+  }
+
+  // Try Chrome storage (async)
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.local.get('extensionSettings', (result) => {
+      if (result.extensionSettings) {
+        carbonExtensionSettings = { ...carbonExtensionSettings, ...result.extensionSettings };
+        console.log('UV Config: Loaded from Chrome storage:', carbonExtensionSettings);
+        // Update localStorage for faster access next time
+        localStorage.setItem('carbonExtensionSettings', JSON.stringify(carbonExtensionSettings));
+      }
+    });
+  }
+}
+
+// Load settings immediately
+loadCarbonExtensionSettings();
+
+// Listen for settings updates
+if (typeof window !== 'undefined') {
+  window.addEventListener('carbonSettingsUpdate', (event) => {
+    carbonExtensionSettings = { ...carbonExtensionSettings, ...event.detail };
+    localStorage.setItem('carbonExtensionSettings', JSON.stringify(carbonExtensionSettings));
+    console.log('UV Config: Settings updated via event:', carbonExtensionSettings);
   });
 }
 

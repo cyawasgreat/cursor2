@@ -123,10 +123,21 @@ async function initializeAuth() {
 // Load settings from storage and Firebase
 async function loadSettings() {
     try {
-        // Load from local storage first
+        // Load from Chrome storage first
         const stored = await chrome.storage.local.get('extensionSettings');
         if (stored.extensionSettings) {
             extensionSettings = { ...extensionSettings, ...stored.extensionSettings };
+        }
+        
+        // Also try localStorage as backup
+        const localStored = localStorage.getItem('carbonExtensionSettings');
+        if (localStored) {
+            try {
+                const localSettings = JSON.parse(localStored);
+                extensionSettings = { ...extensionSettings, ...localSettings };
+            } catch (e) {
+                console.warn('Failed to parse localStorage settings:', e);
+            }
         }
 
         // Try to sync with Firebase
@@ -138,6 +149,11 @@ async function loadSettings() {
                 await saveSettingsLocal();
             }
         }
+        
+        // Make settings globally available
+        window.carbonExtensionSettings = extensionSettings;
+        
+        console.log('Settings loaded:', extensionSettings);
     } catch (error) {
         console.error('Error loading settings:', error);
     }
@@ -146,6 +162,16 @@ async function loadSettings() {
 // Save settings locally
 async function saveSettingsLocal() {
     await chrome.storage.local.set({ extensionSettings });
+    
+    // Also save to localStorage for direct access
+    localStorage.setItem('carbonExtensionSettings', JSON.stringify(extensionSettings));
+    
+    // Update global window object for immediate access
+    if (typeof window !== 'undefined') {
+        window.carbonExtensionSettings = extensionSettings;
+    }
+    
+    console.log('Settings saved to local storage:', extensionSettings);
 }
 
 // Save settings to Firebase
@@ -259,10 +285,33 @@ function setupEventListeners() {
     // Theme selection
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            extensionSettings.theme = e.currentTarget.dataset.theme;
+            const themeName = e.currentTarget.dataset.theme;
+            extensionSettings.theme = { current: themeName };
+            
+            // Apply theme to ALL tabs immediately
+            chrome.tabs.query({}, (tabs) => {
+                tabs.forEach(tab => {
+                    chrome.tabs.sendMessage(tab.id, { 
+                        action: 'applyTheme', 
+                        theme: themeName 
+                    }).catch(() => {
+                        // Ignore errors from tabs that don't have content script
+                    });
+                });
+            });
+            
+            // Send to background script
+            chrome.runtime.sendMessage({ 
+                action: 'updateTheme', 
+                theme: themeName,
+                settings: extensionSettings
+            });
+            
             saveSettings();
             updateUI();
             applyTheme();
+            showNotification(`Theme "${themeName}" applied to all tabs!`, 'success');
+            console.log('Theme updated globally:', themeName);
         });
     });
 
@@ -385,7 +434,8 @@ function updateUI() {
         btn.classList.remove('ring-2', 'ring-cyan-400', 'active');
     });
     // Add active class to current theme
-    const activeThemeBtn = document.querySelector(`[data-theme="${extensionSettings.theme}"]`);
+    const currentTheme = extensionSettings.theme?.current || extensionSettings.theme || 'dark';
+    const activeThemeBtn = document.querySelector(`[data-theme="${currentTheme}"]`);
     if (activeThemeBtn) {
         activeThemeBtn.classList.add('ring-2', 'ring-cyan-400', 'active');
     }
@@ -441,7 +491,8 @@ function updateStatusIndicators() {
     // Theme status
     const themeStatus = document.getElementById('statusTheme');
     if (themeStatus) {
-        themeStatus.textContent = extensionSettings.theme;
+        const currentTheme = extensionSettings.theme?.current || extensionSettings.theme || 'dark';
+        themeStatus.textContent = currentTheme;
         themeStatus.className = 'text-purple-400';
     }
     
@@ -462,6 +513,9 @@ async function saveSettings() {
 // Update UV config injection
 async function updateUVConfig() {
     try {
+        // Update localStorage immediately for UV config access
+        localStorage.setItem('carbonExtensionSettings', JSON.stringify(extensionSettings));
+        
         // Send to background script
         chrome.runtime.sendMessage({
             action: 'updateUVConfig',
@@ -477,9 +531,18 @@ async function updateUVConfig() {
             }).catch(() => {}); // Ignore errors for tabs that can't receive messages
         });
         
-        console.log('UV Config updated:', extensionSettings.uvConfig);
+        // Trigger a global settings update event for UV config
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('carbonSettingsUpdate', {
+                detail: extensionSettings
+            }));
+        }
+        
+        console.log('UV Config updated and synced:', extensionSettings.uvConfig);
+        showNotification('UV Config updated and applied!', 'success');
     } catch (error) {
         console.error('Error updating UV config:', error);
+        showNotification('Failed to update UV Config', 'error');
     }
 }
 
@@ -507,9 +570,11 @@ async function updateUserAgent() {
 
 // Apply theme
 async function applyTheme() {
-    const theme = themes[extensionSettings.theme];
+    const currentTheme = extensionSettings.theme?.current || extensionSettings.theme || 'dark';
+    const theme = themes[currentTheme];
+    
     if (theme) {
-        console.log('Applying theme:', extensionSettings.theme, theme);
+        console.log('Applying theme:', currentTheme, theme);
         
         // Apply theme to popup itself immediately
         applyThemeToPopup(theme);
@@ -517,8 +582,8 @@ async function applyTheme() {
         // Send to background script
         chrome.runtime.sendMessage({
             action: 'applyTheme',
-            theme: theme,
-            themeName: extensionSettings.theme
+            theme: currentTheme,
+            settings: extensionSettings
         });
         
         // Apply to all tabs
@@ -526,15 +591,14 @@ async function applyTheme() {
         tabs.forEach(tab => {
             chrome.tabs.sendMessage(tab.id, {
                 action: 'applyTheme',
-                theme: theme,
-                themeName: extensionSettings.theme
+                theme: currentTheme
             }).catch(() => {}); // Ignore errors
         });
         
-        console.log('Theme applied successfully:', extensionSettings.theme, theme);
+        console.log('Theme applied successfully:', currentTheme);
         
         // Show success feedback
-        showNotification('Theme applied: ' + extensionSettings.theme);
+        showNotification('Theme applied: ' + currentTheme);
     }
 }
 
@@ -564,20 +628,33 @@ function applyThemeToPopup(theme) {
 }
 
 // Show notification
-function showNotification(message) {
+function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.textContent = message;
+    
+    const colors = {
+        success: { bg: '#00ff88', color: '#000' },
+        error: { bg: '#ff4444', color: '#fff' },
+        warning: { bg: '#ffaa00', color: '#000' },
+        info: { bg: '#00aaff', color: '#fff' }
+    };
+    
+    const style = colors[type] || colors.success;
+    
     notification.style.cssText = `
         position: fixed;
         top: 10px;
         right: 10px;
-        background: #00ff88;
-        color: #000;
+        background: ${style.bg};
+        color: ${style.color};
         padding: 8px 12px;
         border-radius: 4px;
         font-size: 12px;
         z-index: 10000;
         animation: slideIn 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        max-width: 250px;
+        word-wrap: break-word;
     `;
     
     document.body.appendChild(notification);
@@ -585,7 +662,7 @@ function showNotification(message) {
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease forwards';
         setTimeout(() => notification.remove(), 300);
-    }, 2000);
+    }, 3000);
 }
 
 // Toggle stealth mode
@@ -724,7 +801,7 @@ async function resetExtension() {
         },
         userAgent: 'default',
         customUserAgent: '',
-        theme: 'dark',
+        theme: { current: 'dark' },
         stealth: {
             enabled: false,
             hideFromHistory: false,
@@ -750,7 +827,7 @@ async function resetExtension() {
     updateUI();
     
     // Apply reset theme
-    const resetTheme = themes[extensionSettings.theme];
+    const resetTheme = themes[extensionSettings.theme.current];
     if (resetTheme) {
         applyThemeToPopup(resetTheme);
     }
